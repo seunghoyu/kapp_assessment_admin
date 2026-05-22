@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>회원관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <a href="./content-create.html">콘텐츠관리 · 문항생성</a>
+          <a href="./content-edit.html">콘텐츠관리 · 문항수정</a>
+          <a class="active" href="./member.html">회원관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">회원관리</h1>
+        <p class="page-subtitle">회원 목록 조회, 검색, 상세 확인, XLS 일괄 업로드 목업 화면입니다.</p>
+        <section class="card">
+          <div class="grid">
+            <label>검색<input placeholder="이름 또는 이메일" /></label>
+            <label>회원 XLS 업로드<input type="file" accept=".xlsx,.xls" /></label>
+          </div>
+          <div class="actions">
+            <button class="button secondary" onclick="mockSubmit('member_template.xlsx 다운로드 목업입니다.')">양식 다운로드</button>
+            <button class="button" onclick="mockSubmit('회원 업로드 검증 결과: 성공 2건, 실패 0건')">일괄 업로드</button>
+          </div>
+        </section>
+        <table>
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>이메일</th>
+              <th>로그인유형</th>
+              <th>가입일</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>테스트 사용자</td>
+              <td>demo@kapp.test</td>
+              <td>email</td>
+              <td>2026-05-22</td>
+              <td>활성</td>
+            </tr>
+            <tr>
+              <td>소셜 사용자</td>
+              <td>social@kapp.test</td>
+              <td>kakao</td>
+              <td>2026-05-22</td>
+              <td>활성</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="notice">비밀번호 초기화 기능은 MVP에서 제공하지 않습니다.</p>
+      </main>
+    </div>
+    <script src="./assets/admin.js"></script>
+  </body>
+</html>

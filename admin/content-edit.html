@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>문항수정 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <a href="./content-create.html">콘텐츠관리 · 문항생성</a>
+          <a class="active" href="./content-edit.html">콘텐츠관리 · 문항수정</a>
+          <a href="./member.html">회원관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">문항수정</h1>
+        <p class="page-subtitle">JF 기준 스킬카드 목록과 K/A/P 문항 목록을 조회합니다.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>선택</th>
+              <th>직무군 코드</th>
+              <th>직무군명</th>
+              <th>카테고리</th>
+              <th>K</th>
+              <th>A</th>
+              <th>P</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>JF_SAL_01</td>
+              <td>B2B 영업</td>
+              <td>영업·판매</td>
+              <td>45세트</td>
+              <td>22문항</td>
+              <td>TBD</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td>JF_STR_03</td>
+              <td>PM·PO·서비스기획</td>
+              <td>기획·전략</td>
+              <td>목업</td>
+              <td>목업</td>
+              <td>TBD</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="actions">
+          <button class="button danger" onclick="confirmDelete('선택한 문항을 삭제하시겠습니까?')">선택 삭제</button>
+          <button class="button" onclick="mockSubmit('수정 화면 목업입니다.')">개별 수정</button>
+        </div>
+      </main>
+    </div>
+    <script src="./assets/admin.js"></script>
+  </body>
+</html>

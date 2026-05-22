@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>문항생성 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <a class="active" href="./content-create.html">콘텐츠관리 · 문항생성</a>
+          <a href="./content-edit.html">콘텐츠관리 · 문항수정</a>
+          <a href="./member.html">회원관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">문항생성</h1>
+        <p class="page-subtitle">테스트 환경에서는 저장 동작을 목업으로 처리합니다.</p>
+
+        <div class="tabs">
+          <button class="tab active">K영역</button>
+          <button class="tab">A영역</button>
+          <button class="tab" onclick="mockSubmit('P영역 문항 양식 준비 중입니다.')">P영역 TBD</button>
+        </div>
+
+        <section class="card">
+          <h2>K영역 개별 입력</h2>
+          <div class="grid">
+            <label>직무군<select><option>JF_SAL_01 · B2B 영업</option></select></label>
+            <label>산업군분류<select><option>ALL</option><option>A</option><option>B</option></select></label>
+            <label>세트번호<input placeholder="예: 1" /></label>
+            <label>세트명<input placeholder="예: 고객 발굴·접근" /></label>
+            <label>슬롯1 능력단위<input /></label>
+            <label>슬롯1 수준<input /></label>
+          </div>
+          <div class="actions">
+            <button class="button secondary" onclick="mockSubmit('K_template.xlsx 다운로드 목업입니다.')">양식 다운로드</button>
+            <button class="button" onclick="mockSubmit('K영역 문항이 등록되었습니다.')">등록</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>A영역 개별 입력</h2>
+          <div class="grid">
+            <label>직무군<select><option>JF_SAL_01 · B2B 영업</option></select></label>
+            <label>직급<input placeholder="대리" /></label>
+            <label>문항번호<input placeholder="1" /></label>
+            <label>트리거유형<input placeholder="외부 정보 포착형" /></label>
+          </div>
+          <label style="margin-top: 14px;">문항본문<textarea></textarea></label>
+          <div class="actions">
+            <button class="button secondary" onclick="mockSubmit('A_template.xlsx 다운로드 목업입니다.')">양식 다운로드</button>
+            <button class="button" onclick="mockSubmit('A영역 문항이 등록되었습니다.')">등록</button>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./assets/admin.js"></script>
+  </body>
+</html>
