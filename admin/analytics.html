@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>행동 퍼널 | KAPP Admin</title>
-    <link rel="stylesheet" href="./assets/admin.css" />
+    <link rel="stylesheet" href="./assets/admin.css?v=20260526d" />
   </head>
   <body>
     <div class="layout">
@@ -83,32 +83,43 @@
             <span>전체 사용자</span>
             <strong id="kpi-users">0</strong>
             <em>검색 조건 기준</em>
+            <button class="text-button" type="button" onclick="showCalculation('users')">계산 기준</button>
           </article>
           <article class="kpi-card">
             <span>온보딩 완료율</span>
             <strong id="kpi-onboarding">0%</strong>
             <em>진입 대비 완료</em>
+            <button class="text-button" type="button" onclick="showCalculation('onboarding')">계산 기준</button>
           </article>
           <article class="kpi-card">
             <span>프로필 완료율</span>
             <strong id="kpi-profile">0%</strong>
             <em>진입 대비 완료</em>
+            <button class="text-button" type="button" onclick="showCalculation('profile')">계산 기준</button>
           </article>
           <article class="kpi-card">
             <span>스킬카드 진입률</span>
             <strong id="kpi-card-open">0%</strong>
             <em>프로필 완료 대비</em>
+            <button class="text-button" type="button" onclick="showCalculation('card')">계산 기준</button>
           </article>
           <article class="kpi-card">
             <span>K/A/P 완료율</span>
             <strong id="kpi-kap">0%</strong>
             <em>문항 진입 대비</em>
+            <button class="text-button" type="button" onclick="showCalculation('kap')">계산 기준</button>
           </article>
           <article class="kpi-card">
             <span>인사이트 확인율</span>
             <strong id="kpi-report">0%</strong>
             <em>K/A/P 완료 대비</em>
+            <button class="text-button" type="button" onclick="showCalculation('report')">계산 기준</button>
           </article>
+        </section>
+
+        <section class="criteria-card" id="calculation-criteria-panel">
+          <strong>계산 기준</strong>
+          <span id="calculation-criteria-text">카드 또는 테이블의 계산 기준 버튼을 누르면 산식과 판단 기준이 표시됩니다.</span>
         </section>
 
         <section class="card">
@@ -117,6 +128,7 @@
               <h2>단계별 퍼널</h2>
               <p class="notice">상세 보기를 누르면 해당 단계의 raw data가 바로 아래에 펼쳐집니다.</p>
             </div>
+            <button class="button secondary small" type="button" onclick="showCalculation('funnel')">계산 기준</button>
           </div>
           <div class="table-wrap">
             <table>
@@ -142,6 +154,7 @@
               <h2>K/A/P 문항 분석</h2>
               <p class="notice">상세 보기를 누르면 해당 문항/세트의 raw data가 바로 아래에 펼쳐집니다.</p>
             </div>
+            <button class="button secondary small" type="button" onclick="showCalculation('kapTable')">계산 기준</button>
           </div>
           <div class="table-wrap">
             <table>
@@ -164,6 +177,7 @@
         </section>
       </main>
     </div>
-    <script src="./assets/admin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <script src="./assets/admin.js?v=20260526d"></script>
   </body>
 </html>

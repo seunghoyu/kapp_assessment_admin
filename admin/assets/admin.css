@@ -206,6 +206,16 @@ textarea {
   font-size: 12px;
 }
 
+.text-button {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0;
+}
+
 .button.secondary {
   border: 1px solid var(--border);
   background: #fff;
@@ -341,6 +351,25 @@ tbody tr:last-child td {
   line-height: 1;
 }
 
+.criteria-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid #d7dbff;
+  border-radius: 14px;
+  background: #fbfbff;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: -4px 0 18px;
+  padding: 14px 16px;
+}
+
+.criteria-card strong {
+  color: var(--primary);
+  white-space: nowrap;
+}
+
 .progress-cell {
   min-width: 120px;
 }
@@ -403,6 +432,159 @@ tbody tr:last-child td {
   font-weight: 800;
 }
 
+.native-select-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-select {
+  position: relative;
+}
+
+.search-select input {
+  width: 100%;
+}
+
+.search-select-list {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  display: none;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+
+.search-select.open .search-select-list {
+  display: grid;
+  gap: 4px;
+}
+
+.search-select-option {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+}
+
+.search-select-option:hover,
+.search-select-option.active {
+  background: var(--soft);
+  color: var(--primary);
+}
+
+.search-select-empty {
+  color: var(--muted);
+  padding: 14px 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+img.emoji {
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0 0.08em;
+  vertical-align: -0.15em;
+}
+
+.code-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+
+.accordion-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  padding: 18px 20px;
+  text-align: left;
+}
+
+.accordion-trigger span {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.accordion-trigger small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.code-section {
+  display: none;
+  padding: 20px;
+}
+
+.code-section.open {
+  display: block;
+}
+
+.industries-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+.job-family-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.job-family-form textarea {
+  min-height: 120px;
+}
+
+.job-family-form .form-actions {
+  grid-column: 1 / -1;
+}
+
+.job-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.nested-accordion {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.nested-accordion summary {
+  cursor: pointer;
+  font-weight: 800;
+  padding: 14px 16px;
+}
+
+.nested-accordion summary span {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: 8px;
+}
+
 .notice {
   color: var(--muted);
   font-size: 13px;
@@ -423,7 +605,9 @@ tbody tr:last-child td {
   .filters,
   .analytics-filters,
   .kpi-grid,
-  .code-form {
+  .code-form,
+  .industries-form,
+  .job-family-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -453,6 +637,8 @@ tbody tr:last-child td {
   .filters,
   .analytics-filters,
   .code-form,
+  .industries-form,
+  .job-family-form,
   .kpi-grid {
     grid-template-columns: 1fr;
   }
