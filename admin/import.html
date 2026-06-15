@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>엑셀 임포트 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260615" />
+    <style>
+      .imp-drop { border:2px dashed var(--border,#d7dce3); border-radius:14px; padding:28px; text-align:center; background:#fafbfc; }
+      .imp-drop input { margin-top:10px; }
+      .stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:12px; }
+      .stat { border:1px solid var(--border,#e6e9ee); border-radius:12px; padding:12px 14px; }
+      .stat .n { font-size:22px; font-weight:700; }
+      .stat .l { font-size:12px; color:var(--muted,#667085); }
+      .issue { display:flex; gap:8px; padding:6px 10px; border-radius:8px; font-size:13px; align-items:flex-start; }
+      .issue + .issue { margin-top:4px; }
+      .issue.error { background:#FEF2F2; color:#991B1B; }
+      .issue.warn { background:#FFFBEB; color:#92400E; }
+      .issue.info { background:#F1F5F9; color:#334155; }
+      .issue .tag { font-weight:700; flex:0 0 auto; }
+      table.cls { width:100%; border-collapse:collapse; font-size:13px; }
+      table.cls td, table.cls th { border-bottom:1px solid var(--border,#eef1f5); padding:6px 8px; text-align:left; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">엑셀 임포트</div>
+          <a class="active" href="./import.html">엑셀 임포트</a>
+          <a href="./relations.html">데이터 관계도</a>
+          <a href="./result-preview.html">결과 프리뷰</a>
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./code-management.html">코드 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">엑셀(xlsx) 임포트</h1>
+            <p class="page-subtitle">K/A/P 문항·결과 엑셀을 올리면 세트가 자동 구성되고, 정합성 검증 후 로컬에 반영됩니다. (시트명: K_문항·K_결과·A_문항·A_결과·P_문항·P_결과)</p>
+          </div>
+        </div>
+
+        <section class="card">
+          <div class="imp-drop">
+            <div style="font-weight:600">엑셀 파일을 선택하세요</div>
+            <div class="notice" style="margin-top:4px">한 문항 = 한 행(세트번호 포함) → 세트 자동 구성</div>
+            <input id="file" type="file" accept=".xlsx,.xls" />
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-top:14px">
+            <label style="min-width:200px">직무군(JF) 코드 <small style="color:var(--muted)">(미감지 시 사용)</small>
+              <input id="jf" value="JF_SAL_01" />
+            </label>
+            <button class="button secondary" onclick="downloadTemplate('K')">K 양식</button>
+            <button class="button secondary" onclick="downloadTemplate('A')">A 양식</button>
+            <button class="button secondary" onclick="downloadTemplate('P')">P 양식</button>
+          </div>
+          <div class="notice" style="margin-top:10px">
+            양식은 <b>K · A · P 각각 별도 파일</b>로 받습니다. (한 파일에 여러 영역을 함께 올려도 시트명으로 자동 인식)
+            &nbsp;·&nbsp;
+            <a href="#" onclick="seedDummy();return false">더미 데이터 채워보기(확인용)</a>
+          </div>
+        </section>
+
+        <section class="card" id="result-card" style="display:none">
+          <h2 id="detected-jf"></h2>
+
+          <table class="cls" id="cls-table"></table>
+
+          <div class="stat-grid" id="stats"></div>
+
+          <hr class="section-divider" />
+          <h2 style="font-size:15px">정합성 검증 <span class="badge" id="vbadge"></span></h2>
+          <div id="issues" style="margin-top:8px;max-height:320px;overflow:auto"></div>
+
+          <div class="actions" style="margin-top:14px">
+            <button class="button" id="commit-btn" onclick="commitNow()">로컬에 반영(저장)</button>
+            <a class="button secondary" href="./relations.html" style="text-decoration:none">데이터 관계도 →</a>
+            <a class="button secondary" href="./result-preview.html" style="text-decoration:none">결과 프리뷰 →</a>
+          </div>
+          <div class="notice" id="commit-msg" style="margin-top:8px;display:none"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="./assets/import.js?v=20260615"></script>
+    <script>
+      let lastBundle = null;
+
+      document.getElementById("file").addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
+          const sheets = wb.SheetNames.map((name) => ({
+            name,
+            rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: "" }),
+          }));
+          const jf = document.getElementById("jf").value.trim() || null;
+          render(sheets, jf);
+        };
+        reader.readAsArrayBuffer(f);
+      });
+
+      function render(sheets, jf) {
+        const b = KappImport.normalizeWorkbook(sheets, jf);
+        lastBundle = b;
+        document.getElementById("result-card").style.display = "";
+        document.getElementById("commit-msg").style.display = "none";
+        document.getElementById("detected-jf").textContent = "직무군: " + (b.jobFamilyId || "(미감지)");
+
+        // 시트 분류 표
+        document.getElementById("cls-table").innerHTML =
+          "<tr><th>시트</th><th>인식</th></tr>" +
+          b.sheetsSeen.map((s) => `<tr><td>${s.name}</td><td>${s.classified ? s.classified.area + " · " + (s.classified.kind === "question" ? "문항" : "결과") : "<span style='color:#b91c1c'>미인식</span>"}</td></tr>`).join("");
+
+        // 통계
+        const stats = [
+          ["K 토픽", b.k.topics.length], ["K 케이스", b.k.cases.length], ["K 세트", b.k.sets.length], ["K 문항", b.k.questions.length],
+          ["A 문항", b.a.questions.length], ["P 세트", b.p.sets.length], ["P 문항", b.p.questions.length],
+        ];
+        document.getElementById("stats").innerHTML = stats.map(([l, n]) => `<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+
+        // 정합성
+        const v = KappImport.validate(b);
+        const vb = document.getElementById("vbadge");
+        vb.textContent = v.ok ? `오류 0 · 경고 ${v.warns}` : `오류 ${v.errors} · 경고 ${v.warns}`;
+        vb.style.background = v.ok ? "#16A34A" : "#DC2626";
+        vb.style.color = "#fff";
+        document.getElementById("issues").innerHTML = v.issues.map((i) =>
+          `<div class="issue ${i.level}"><span class="tag">[${i.area}]</span><span>${i.msg}</span></div>`
+        ).join("");
+        document.getElementById("commit-btn").disabled = !b.jobFamilyId;
+      }
+
+      function commitNow() {
+        if (!lastBundle) return;
+        KappImport.commit(lastBundle);
+        const m = document.getElementById("commit-msg");
+        m.style.display = "";
+        m.textContent = `✓ ${lastBundle.jobFamilyId} 데이터를 로컬에 반영했습니다. 관계도/프리뷰에서 확인하세요.`;
+      }
+
+      // 표준 양식(헤더만) — 영역별 별도 파일
+      const TEMPLATES = {
+        K: {
+          file: "KAPP_K_양식.xlsx",
+          sheets: {
+            "K_문항": ["JF", "세트번호", "산업분류", "세트명", "문항번호", "레벨", "직급", "문항", "선지①", "선지②", "선지③", "선지④", "정답", "해설", "출제능력단위", "출제소스", "NCS수준", "주요출제영역"],
+            "K_결과": ["JF 코드", "직무명", "set_id", "topic_display_name", "priority", "강점/보완 기준", "topic_summary", "직급 맥락 문구", "0:4 발견문구", "4:0 대상직급", "NCS 근거", "학습영역1", "학습영역2", "학습영역3"],
+          },
+        },
+        A: {
+          file: "KAPP_A_양식.xlsx",
+          sheets: {
+            "A_문항": ["직급", "클러스터", "기업규모", "번호", "트리거", "시나리오", "선지", "내용"],
+            "A_결과": ["유형명", "한 줄 정의", "강점영역 보조문구", "강점카드(재직자)", "성장방향", "의외의 직업"],
+          },
+        },
+        P: {
+          file: "KAPP_P_양식.xlsx",
+          sheets: {
+            "P_문항": ["문항", "유형", "문항유형", "카드세트", "선지 텍스트", "INS", "ANL", "REL", "PIO", "행동 라벨"],
+            "P_결과": ["유형명", "구성 설명", "상황 반응(4)", "닮은 인물"],
+          },
+        },
+      };
+      function downloadTemplate(area) {
+        const t = TEMPLATES[area];
+        const wb = XLSX.utils.book_new();
+        Object.entries(t.sheets).forEach(([name, header]) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([header]), name));
+        XLSX.writeFile(wb, t.file);
+      }
+
+      // 확인용 더미 데이터 — K/A/P 넉넉히 생성 후 commit
+      function seedDummy() {
+        const jf = (document.getElementById("jf").value.trim() || "JF_SAL_01");
+        const LEVELS = ["주니어", "주임", "대리", "과장", "차장", "팀장", "부장", "임원"];
+        const GRADE = ["IC_JUNIOR", "IC_MID_A", "IC_MID_B", "IC_SENIOR", "LEAD", "MANAGER_A", "MANAGER_B", "EXEC"];
+        // K: 30 토픽 + 12개 세트에 직급별 문항 + 케이스 5개
+        const topics = [], kq = [];
+        for (let i = 1; i <= 30; i++) {
+          const sid = "S" + String(i).padStart(2, "0");
+          topics.push({
+            setId: sid, setNo: i, setName: "더미 토픽 " + i, priority: i,
+            topicSummary: "더미 토픽 " + i + "의 한 줄 소개입니다.",
+            levelContext: "이 토픽이 실무에서 쓰이는 상황 설명 " + i,
+            strengthRule: "정답=강점 / 오답=보완",
+            case04Title: "더미 토픽 " + i, case40Grade: "(직급+1)",
+            ncsSource: "NCS 더미 근거 " + i,
+            learningAreas: i % 3 === 0 ? ["학습영역A", "학습영역B", "학습영역C"] : [],
+            questionCount: 0,
+          });
+        }
+        // 앞 12개 세트에 직급 8개 × 문항 1 = 96문항
+        for (let s = 1; s <= 12; s++) {
+          const sid = "S" + String(s).padStart(2, "0");
+          LEVELS.forEach((lv, li) => {
+            kq.push({
+              setCode: sid, tag: lv + " 문항 1", level: lv, gradeCode: GRADE[li],
+              abilityUnit: "더미 능력단위", stem: `[${sid}/${lv}] 더미 K 문항 본문입니다. 가장 적절한 것은?`,
+              options: [1, 2, 3, 4].map((n) => ({ label: "①②③④"[n - 1], text: `더미 선지 ${n}` })),
+              answerIndex: (s + li) % 4, explanation: "더미 핵심해설", weight: 0.75 + li * 0.15,
+            });
+          });
+        }
+        topics.forEach((t) => { t.questionCount = kq.filter((q) => q.setCode === t.setId).length; });
+        const cases = [
+          { code: "A", ratio: "3:1", correct: 3, headline: "4문항 중 3문항을 정확히 판단했습니다", block1: ["강점 3 / 보완 1 버킷"], block2: ["보완 카드 1개"], actions: ["행동유형 진단 →"] },
+          { code: "B", ratio: "2:2", correct: 2, headline: "절반은 채울 수 있어요", block1: ["강점 2 / 보완 2"], block2: ["보완 카드 2개"], actions: ["행동유형 진단 →"] },
+          { code: "C", ratio: "1:3", correct: 1, headline: "4문항 중 1문항을 정확히 판단했습니다", block1: ["강점 1 / 보완 3"], block2: ["보완 카드 3개"], actions: ["행동유형 진단 →"] },
+          { code: "D", ratio: "0:4", correct: 0, headline: "오늘 진단으로 알게 된 것들이 있어요", block1: ["오늘 알게 된 4가지"], block2: ["보완 카드 4개"], actions: ["행동유형 진단 →"] },
+          { code: "E", ratio: "4:0", correct: 4, headline: "이 직무 지식, 탄탄하게 갖추고 있어요", block1: ["전체 강점 박스"], block2: [], actions: ["직급 상향 도전 카드", "공유하기 카드"] },
+        ];
+        // A: 12문항 (직급/클러스터/기업규모 조합)
+        const clusters = ["IT·서비스", "유통·물류"], sizes = ["스타트업", "중소", "중견", "대기업"];
+        const aq = [];
+        for (let i = 1; i <= 12; i++) {
+          aq.push({
+            no: i, grade: LEVELS[i % 6], cluster: clusters[i % 2], companySize: sizes[i % 4],
+            trigger: "더미 트리거 " + i, stem: `더미 A 시나리오 ${i} — 어떻게 반응할 것인가?`,
+            options: [1, 2, 3, 4].map((n) => ({ label: "①②③④"[n - 1], text: `더미 A 선지 ${n}` })),
+            explanationBlocks: { situationAnalysis: "더미 상황해설", contextConditions: "더미 맥락조건", jobKnowledge: "더미 직무지식", reflectionQuestion: "더미 리플렉션", fieldPatternCase: "더미 현업패턴" },
+          });
+        }
+        // P: 2세트 × 4문항 × 4선지(합100)
+        const pSets = [
+          { setId: "DUMMY_startup_S1", cluster: "IT·서비스", companySize: "스타트업", grade: "대리" },
+          { setId: "DUMMY_midsize_S1", cluster: "유통·물류", companySize: "중견", grade: "과장" },
+        ];
+        const axes = ["INS", "ANL", "REL", "PIO"], qtypes = ["basic", "condition_flip", "peer_pressure", "time_pressure"];
+        const pq = [];
+        pSets.forEach((ps) => {
+          for (let q = 1; q <= 4; q++) {
+            const opts = axes.map((ax) => {
+              const o = { axis: ax, text: `더미 P 선지(${ax})`, INS: 5, ANL: 5, REL: 5, PIO: 5, actionLabel: "더미 행동" };
+              o[ax] = 85; // 합 = 85+5+5+5 = 100
+              return o;
+            });
+            pq.push({ setId: ps.setId, qNo: q, questionType: qtypes[q - 1], card: q <= 2 ? "A" : "B", stem: `더미 P Q${q} 시나리오`, options: opts });
+          }
+        });
+
+        const bundle = {
+          jobFamilyId: jf,
+          k: { topics, cases, sets: topics, questions: kq },
+          a: { questions: aq, design: { text: "더미 A 결과 설계안 (재직자/취준생 분기, 강점카드, 의외의 직업, 성장방향).", typeNames: ["개척형", "완수형", "관계형", "제안형", "관리형", "전략형"] } },
+          p: { sets: pSets, questions: pq, design: { text: "더미 P 결과 설계안.", typeNames: ["개척형", "완수형", "관계형", "제안형", "관리형", "전략형"] } },
+          sheetsSeen: [],
+        };
+        KappImport.commit(bundle);
+        lastBundle = bundle;
+        alert(`더미 데이터 반영 완료 (${jf})\nK 토픽 ${topics.length} · K 문항 ${kq.length} · A 문항 ${aq.length} · P 세트 ${pSets.length}/문항 ${pq.length}\n관계도·프리뷰에서 확인하세요.`);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>데이터 관계도 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260615" />
+    <style>
+      .flow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--muted,#667085); margin:6px 0 14px; }
+      .flow .node { background:#EEF2FF; color:#3730A3; border-radius:8px; padding:4px 10px; font-weight:600; }
+      .flow .arrow { color:#94A3B8; }
+      table.rel { width:100%; border-collapse:collapse; font-size:13px; }
+      table.rel th, table.rel td { border-bottom:1px solid var(--border,#eef1f5); padding:7px 9px; text-align:left; vertical-align:top; }
+      table.rel th { background:#f8fafc; font-size:12px; color:#475569; position:sticky; top:0; }
+      .pill { display:inline-block; font-size:11px; padding:2px 7px; border-radius:999px; background:#F1F5F9; color:#334155; }
+      .pill.ok { background:#DCFCE7; color:#166534; }
+      .pill.miss { background:#FEE2E2; color:#991B1B; }
+      details.set { border:1px solid var(--border,#e6e9ee); border-radius:10px; margin-bottom:8px; }
+      details.set > summary { padding:10px 12px; cursor:pointer; font-weight:600; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+      details.set > div { padding:0 12px 12px; }
+      .axis { font-variant-numeric:tabular-nums; }
+      .sec-title { font-size:16px; font-weight:700; margin:18px 0 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">엑셀 임포트</div>
+          <a href="./import.html">엑셀 임포트</a>
+          <a class="active" href="./relations.html">데이터 관계도</a>
+          <a href="./result-preview.html">결과 프리뷰</a>
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">데이터 관계도</h1>
+            <p class="page-subtitle">직무군 → 세트 → 문항 → 결과페이지로 데이터가 어떻게 연결되는지 한눈에 확인합니다.</p>
+          </div>
+          <label>직무군
+            <input id="jf" list="jf-list" placeholder="JF 검색/입력 (예: JF_SAL_01)" oninput="render()" autocomplete="off" />
+            <datalist id="jf-list"></datalist>
+          </label>
+        </div>
+        <div id="body"></div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260615"></script>
+    <script>
+      const LS = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || d); } catch { return JSON.parse(d); } };
+      const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+      function jfList() {
+        const set = new Set();
+        try { (getCodeOptions().jobFamilies || []).forEach((j) => set.add(j.jobFamilyId)); } catch {}
+        ["kapp_k_sets_v1", "kapp_a_questions_v1", "kapp_p_sets_v1"].forEach((k) =>
+          LS(k, "[]").forEach((x) => x.jobFamilyId && set.add(x.jobFamilyId)));
+        return [...set];
+      }
+
+      function populate() {
+        const list = jfList();
+        document.getElementById("jf-list").innerHTML = list.map((j) => `<option value="${j}">`).join("");
+        const jfInput = document.getElementById("jf");
+        if (list.includes("JF_SAL_01")) jfInput.value = "JF_SAL_01"; else if (list.length) jfInput.value = list[0];
+      }
+
+      function render() {
+        const jf = document.getElementById("jf").value;
+        const kSets = LS("kapp_k_sets_v1", "[]").filter((s) => s.jobFamilyId === jf);
+        const kQ = LS("kapp_k_questions_v1", "[]").filter((q) => q.jobFamilyId === jf);
+        const kCases = (LS("kapp_k_cases_v1", "{}") || {})[jf] || [];
+        const aQ = LS("kapp_a_questions_v1", "[]").filter((q) => q.jobFamilyId === jf);
+        const aMap = LS("kapp_a_mappings_v1", "{}");
+        const aTypeMasters = LS("kapp_a_types_v1", "[]").filter((t) => t.jobFamilyId === jf);
+        const pSets = LS("kapp_p_sets_v1", "[]").filter((s) => s.jobFamilyId === jf);
+        const pQ = LS("kapp_p_questions_v1", "[]").filter((q) => q.jobFamilyId === jf);
+        const pTypeMasters = LS("kapp_p_types_v1", "[]").filter((t) => t.jobFamilyId === jf);
+        const design = (LS("kapp_result_design_v1", "{}") || {})[jf] || {};
+
+        const qBySet = {};
+        kQ.forEach((q) => { (qBySet[q.setCode] = qBySet[q.setCode] || []).push(q); });
+
+        let html = "";
+
+        // ── K ─────────────────────────────────────────────
+        html += `<div class="sec-title">K · 지식</div>`;
+        html += `<div class="flow"><span class="node">JF ${esc(jf)}</span><span class="arrow">→</span><span class="node">세트(토픽) ${kSets.length}</span><span class="arrow">→</span><span class="node">문항 ${kQ.length}</span><span class="arrow">⮕</span><span class="node">K 결과 케이스 ${kCases.length}</span></div>`;
+        html += `<section class="card">`;
+        if (!kSets.length) html += `<div class="empty-state">K 데이터가 없습니다. 임포트를 먼저 실행하세요.</div>`;
+        kSets.sort((a, b) => (a.priority || a.setNo || 0) - (b.priority || b.setNo || 0)).forEach((s) => {
+          const qs = qBySet[s.setCode] || [];
+          const la = (s.learningAreas || []).filter(Boolean);
+          html += `<details class="set"><summary><span>${esc(s.setCode)} · ${esc(s.setName)} <span class="pill">priority ${s.priority ?? "-"}</span></span><span class="pill ${qs.length ? "ok" : "miss"}">문항 ${qs.length}</span></summary><div>`;
+          html += `<div class="notice" style="margin:6px 0">토픽요약: ${esc(s.topicCoreSummary) || "-"}<br/>직급맥락: ${esc(s.topicLevelContext) || "-"}<br/>학습영역: ${la.length ? la.map(esc).join(" · ") : "<span class='pill miss'>미입력</span>"} · NCS: ${esc(s.ncsSource) || "-"}</div>`;
+          if (qs.length) {
+            html += `<table class="rel"><tr><th>번호</th><th>직급</th><th>난이도</th><th>문항</th><th>선지</th><th>정답</th></tr>`;
+            qs.forEach((q, i) => {
+              html += `<tr><td>${i + 1}</td><td>${esc(q.level)}</td><td>${esc(q.gradeCode || "")}<br/><small>${q.weight ?? ""}</small></td><td>${esc((q.stem || "").slice(0, 70))}…</td><td><span class="pill ${q.options && q.options.length === 4 ? "ok" : "miss"}">${q.options ? q.options.length : 0}</span></td><td>${q.answerIndex == null ? "<span class='pill miss'>미표기</span>" : "①②③④"[q.answerIndex]}</td></tr>`;
+            });
+            html += `</table>`;
+          }
+          html += `</div></details>`;
+        });
+        // 케이스 → 결과페이지
+        if (kCases.length) {
+          html += `<div style="margin-top:10px;font-weight:600;font-size:13px">결과페이지 케이스 분기 (정답수 → 구조)</div>`;
+          html += `<table class="rel"><tr><th>케이스</th><th>정답</th><th>헤드라인</th><th>BLOCK1</th><th>BLOCK2</th><th>액션</th></tr>`;
+          kCases.forEach((c) => {
+            html += `<tr><td><b>${esc(c.code)}</b> · ${esc(c.ratio)}</td><td>${c.correct ?? ""}</td><td>${esc(c.headline)}</td><td>${esc((c.block1 || []).join(" / "))}</td><td>${esc((c.block2 || []).join(" / "))}</td><td>${esc((c.actions || []).join(" / "))}</td></tr>`;
+          });
+          html += `</table>`;
+        }
+        html += `</section>`;
+
+        // ── A ─────────────────────────────────────────────
+        html += `<div class="sec-title">A · 적성</div>`;
+        html += `<div class="flow"><span class="node">문항 ${aQ.length}</span><span class="arrow">→</span><span class="node">선지 × 축 매핑</span><span class="arrow">→</span><span class="node">유형 ${aTypeMasters.length}</span><span class="arrow">⮕</span><span class="node">A 결과(재직자/취준생)</span></div>`;
+        html += `<section class="card">`;
+        if (!aQ.length) html += `<div class="empty-state">A 데이터가 없습니다.</div>`;
+        else {
+          html += `<table class="rel"><tr><th>#</th><th>직급</th><th>클러스터</th><th>기업규모</th><th>트리거</th><th>선지</th><th>해설블록</th><th>축매핑</th></tr>`;
+          aQ.sort((a, b) => a.no - b.no).forEach((q) => {
+            const blocks = Object.keys(q.explanationBlocks || {}).length;
+            const mapped = Object.keys(aMap).some((k) => k.startsWith(q.id));
+            html += `<tr><td>${q.no}</td><td>${esc(q.grade)}</td><td>${esc(q.cluster)}</td><td>${esc(q.companySize)}</td><td>${esc(q.trigger)}</td><td><span class="pill ${q.options && q.options.length === 4 ? "ok" : "miss"}">${q.options ? q.options.length : 0}</span></td><td><span class="pill ${blocks ? "ok" : "miss"}">${blocks}</span></td><td>${mapped ? "<span class='pill ok'>설정</span>" : "<span class='pill miss'>미설정</span>"}</td></tr>`;
+          });
+          html += `</table>`;
+          html += `<div style="margin-top:10px;font-weight:600;font-size:13px">자동 등록된 적성유형 마스터</div>`;
+          html += `<table class="rel"><tr><th>유형</th><th>정의</th><th>강점카드</th><th>닮은직업</th><th>콘텐츠</th></tr>`;
+          aTypeMasters.forEach((t) => {
+            html += `<tr><td><b>${esc(t.typeName)}</b></td><td>${esc(t.definition) || "—"}</td><td>${(t.strengthCards || []).length}</td><td>${(t.similarJobs || []).length}</td><td>${t._needsContent ? "<span class='pill miss'>보강 필요</span>" : "<span class='pill ok'>채움</span>"}</td></tr>`;
+          });
+          html += `</table>`;
+          html += `<div class="notice" style="margin-top:8px">선지별 축 매핑은 0점 스캐폴드로 자동 생성됨(${Object.keys(aMap).filter((k) => k.startsWith("aq_" + jf)).length}건) → 엑셀 계산식 입력 후 재임포트 시 채워집니다.</div>`;
+        }
+        html += `</section>`;
+
+        // ── P ─────────────────────────────────────────────
+        html += `<div class="sec-title">P · 실전</div>`;
+        html += `<div class="flow"><span class="node">세트 ${pSets.length}</span><span class="arrow">→</span><span class="node">문항 ${pQ.length}</span><span class="arrow">→</span><span class="node">INS·ANL·REL·PIO 누적</span><span class="arrow">⮕</span><span class="node">유형 ${pTypeMasters.length} (닮은인물 포함)</span></div>`;
+        html += `<section class="card">`;
+        if (!pQ.length) html += `<div class="empty-state">P 데이터가 없습니다.</div>`;
+        else {
+          pSets.forEach((s) => html += `<div class="notice" style="margin-bottom:6px">세트 ${esc(s.setCode)} · ${esc(s.cluster)} · ${esc(s.companySize)} · ${esc(s.grade)}</div>`);
+          html += `<table class="rel"><tr><th>문항</th><th>유형</th><th>카드</th><th>선지</th><th class="axis">INS</th><th class="axis">ANL</th><th class="axis">REL</th><th class="axis">PIO</th><th>합</th></tr>`;
+          pQ.sort((a, b) => a.qNo - b.qNo).forEach((q) => {
+            (q.options || []).forEach((o, oi) => {
+              const sum = o.INS + o.ANL + o.REL + o.PIO;
+              html += `<tr><td>${oi === 0 ? "Q" + q.qNo + "<br/><small>" + esc(q.questionType) + "</small>" : ""}</td><td>${esc(o.axis)}</td><td>${oi === 0 ? esc(q.card) : ""}</td><td>${esc((o.text || "").slice(0, 40))}…</td><td class="axis">${o.INS}</td><td class="axis">${o.ANL}</td><td class="axis">${o.REL}</td><td class="axis">${o.PIO}</td><td><span class="pill ${sum === 100 ? "ok" : "miss"}">${sum}</span></td></tr>`;
+            });
+          });
+          html += `</table>`;
+          html += `<div style="margin-top:10px;font-weight:600;font-size:13px">자동 등록된 패턴유형 마스터</div>`;
+          html += `<table class="rel"><tr><th>유형</th><th>한줄 설명</th><th>닮은 인물</th><th>상황반응</th><th>콘텐츠</th></tr>`;
+          pTypeMasters.forEach((t) => {
+            const people = (t.similarPeople || []).map((p) => p.name).join(", ");
+            html += `<tr><td><b>${esc(t.typeName)}</b> <span class="muted">${esc(t.axis)}</span></td><td>${esc(t.actionDesc) || "—"}</td><td>${people ? esc(people) : "—"}</td><td>${(t.situations || []).length}</td><td>${t._needsContent ? "<span class='pill miss'>보강 필요</span>" : "<span class='pill ok'>채움</span>"}</td></tr>`;
+          });
+          html += `</table>`;
+        }
+        html += `</section>`;
+
+        document.getElementById("body").innerHTML = html;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => { populate(); render(); });
+    </script>
+  </body>
+</html>
