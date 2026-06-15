@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -12,11 +12,13 @@
         <div class="brand">KAPP Admin</div>
         <div class="account">admin 계정</div>
         <nav class="nav">
-          <a href="./content-create.html">콘텐츠 관리 · 문항 생성</a>
-          <a href="./content-edit.html">콘텐츠 관리 · 문항 수정</a>
+          <div class="nav-group-label">콘텐츠 관리</div>
+          <a href="./jf-manage.html">직무군별 통합 관리</a>
+          <div class="nav-group-label">운영</div>
           <a href="./member.html">회원 관리</a>
           <a href="./analytics.html">행동 퍼널</a>
           <a class="active" href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
         </nav>
       </aside>
       <main class="main">
@@ -77,6 +79,63 @@
               </div>
             </form>
             <div id="job-family-groups" class="job-groups"></div>
+          </div>
+        </section>
+        <section class="card code-accordion">
+          <button class="accordion-trigger" type="button" onclick="toggleCodeSection('grades-section')">
+            <span>직급 커스텀 설정</span>
+          </button>
+          <div id="grades-section" class="code-section">
+            <p class="section-desc">특정 직무를 선택한 사용자에게 해당 직군의 직급명이 표시됩니다. 등록하지 않은 직무는 기본 직급(주니어·주임·대리·과장·차장·팀장·부장·임원)이 사용됩니다.</p>
+            <form class="grade-custom-form" onsubmit="saveGradeCustomization(event)">
+              <input id="grade-original-key" type="hidden" />
+              <div class="grade-form-top">
+                <label>직무명
+                  <div class="search-select" id="grade-role-select-wrap">
+                    <input id="grade-role-search" type="text" placeholder="직무명 검색..." autocomplete="off" oninput="filterGradeRoleOptions()" onfocus="openGradeRoleSelect()" />
+                    <input id="grade-role-key" type="hidden" required />
+                    <div class="search-select-list" id="grade-role-list"></div>
+                  </div>
+                </label>
+              </div>
+              <div class="grade-map-grid">
+                <div class="grade-map-header">
+                  <span>기본 직급</span>
+                  <span>커스텀 직급명</span>
+                </div>
+                <div class="grade-map-row"><span class="grade-std">주니어(인턴·사원)</span><input id="gm-0" placeholder="예: 소방사(신임 소방관)" /></div>
+                <div class="grade-map-row"><span class="grade-std">주임</span><input id="gm-1" placeholder="예: 소방교(숙련 소방관)" /></div>
+                <div class="grade-map-row"><span class="grade-std">대리</span><input id="gm-2" placeholder="예: 소방장(실무 책임)" /></div>
+                <div class="grade-map-row"><span class="grade-std">과장</span><input id="gm-3" placeholder="예: 소방위(팀 운영 총괄)" /></div>
+                <div class="grade-map-row"><span class="grade-std">차장</span><input id="gm-4" placeholder="예: 소방경(중간 관리)" /></div>
+                <div class="grade-map-row"><span class="grade-std">팀장</span><input id="gm-5" placeholder="예: 소방령(부서 총괄)" /></div>
+                <div class="grade-map-row"><span class="grade-std">부장</span><input id="gm-6" placeholder="예: 소방정(기관 운영)" /></div>
+                <div class="grade-map-row"><span class="grade-std">임원</span><input id="gm-7" placeholder="예: 소방준감·소방감" /></div>
+              </div>
+              <div class="actions form-actions" style="margin-top:16px">
+                <button class="button secondary" type="button" onclick="resetGradeCustomizationForm()">초기화</button>
+                <button class="button" type="submit">저장</button>
+              </div>
+            </form>
+            <div class="table-wrap grade-map-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>직무명</th>
+                    <th>주니어(인턴·사원)</th>
+                    <th>주임</th>
+                    <th>대리</th>
+                    <th>과장</th>
+                    <th>차장</th>
+                    <th>팀장</th>
+                    <th>부장</th>
+                    <th>임원</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="grade-custom-body"></tbody>
+              </table>
+            </div>
           </div>
         </section>
       </main>

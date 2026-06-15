@@ -1,4 +1,5 @@
 const CODE_STORAGE_KEY = "kapp_admin_code_options_v3";
+const STANDARD_GRADES = ["주니어(인턴·사원)", "주임", "대리", "과장", "차장", "팀장", "부장", "임원"];
 const defaultCodeOptions = {
   "industries": [
     {
@@ -1957,6 +1958,12 @@ const defaultCodeOptions = {
         "보건교사"
       ]
     }
+  ],
+  gradeCustomizations: [
+    { roleKey: "소방행정직", gradeMap: { "주니어(인턴·사원)": "소방사(신임 소방관)", "주임": "소방교(숙련 소방관)", "대리": "소방장(실무 책임)", "과장": "소방위(팀 운영 총괄)", "차장": "소방경(중간 관리)", "팀장": "소방령(부서 총괄)", "부장": "소방정(기관 운영)", "임원": "소방준감·소방감(청장급)" } },
+    { roleKey: "경찰행정직", gradeMap: { "주니어(인턴·사원)": "순경(신임 경찰관)", "주임": "경장(숙련 경찰관)", "대리": "경사(실무 책임)", "과장": "경위(팀 운영 총괄)", "차장": "경감(중간 관리)", "팀장": "경정(부서 총괄)", "부장": "총경(경찰서장급)", "임원": "경무관·치안감(지방청장급)" } },
+    { roleKey: "교정직", gradeMap: { "주니어(인턴·사원)": "교도관 9급(신입)", "주임": "교도관 8급(숙련)", "대리": "교위(실무 책임)", "과장": "교감(처우 총괄)", "차장": "교장감(중간 관리)", "팀장": "교정관리(부서 총괄)", "부장": "교정부이사관(기관 운영)", "임원": "교정이사관·본부장급" } },
+    { roleKey: "군무원", gradeMap: { "주니어(인턴·사원)": "군무원 9급", "주임": "군무원 8급", "대리": "군무원 7급", "과장": "군무원 6급", "차장": "군무원 5급", "팀장": "군무원 4급", "부장": "군무원 3급", "임원": "군무원 2~1급" } }
   ]
 };
 
@@ -2103,6 +2110,15 @@ const analyticsState = {
   },
 };
 
+function switchContentTab(area, btn) {
+  ["k", "a"].forEach((id) => {
+    const sec = document.querySelector("#content-tab-" + id);
+    if (sec) sec.style.display = id === area ? "" : "none";
+  });
+  btn.closest(".tabs").querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+  btn.classList.add("active");
+}
+
 function mockSubmit(message) {
   window.alert(message || "테스트 환경에서 저장되었습니다.");
 }
@@ -2118,7 +2134,7 @@ function loginAdmin(event) {
   const id = document.querySelector("#admin-id").value;
   const pw = document.querySelector("#admin-pw").value;
   if (id === "admin" && pw === "admin1234") {
-    window.location.href = "./content-create.html";
+    window.location.href = "./jf-manage.html";
     return;
   }
   window.alert("임시 계정은 admin / admin1234 입니다.");
@@ -2535,6 +2551,14 @@ function getCodeOptions() {
     if (parsed?.jobFamilies && parsed?.industries) {
       const hasLegacyIndustry = parsed.industries.some((item) => item.code === "ALL" || !item.shortName);
       const hasLegacyJob = parsed.jobFamilies.some((item) => !item.majorCategoryLabel || !item.familyGroupId || !Array.isArray(item.typicalRoles));
+      if (!parsed.gradeCustomizations) parsed.gradeCustomizations = structuredClone(defaultCodeOptions.gradeCustomizations);
+      // 구형 grades 배열 → gradeMap 마이그레이션
+      parsed.gradeCustomizations = parsed.gradeCustomizations.map((item) => {
+        if (item.gradeMap) return item;
+        const gradeMap = {};
+        STANDARD_GRADES.forEach((grade, i) => { if (item.grades?.[i]) gradeMap[grade] = item.grades[i]; });
+        return { roleKey: item.roleKey, gradeMap };
+      });
       if (!hasLegacyIndustry && !hasLegacyJob) return parsed;
     }
     if (parsed?.jobs && parsed?.industries) {
@@ -2663,7 +2687,13 @@ function initializeCodeSelects() {
 }
 
 function toggleCodeSection(id) {
-  document.querySelector(`#${id}`)?.classList.toggle("open");
+  const section = document.querySelector(`#${id}`);
+  if (!section) return;
+  section.classList.toggle("open");
+  const trigger = section.previousElementSibling;
+  if (trigger?.classList.contains("accordion-trigger")) {
+    trigger.classList.toggle("open", section.classList.contains("open"));
+  }
 }
 
 function resetIndustryForm() {
@@ -2823,7 +2853,7 @@ function renderJobFamilyGroups() {
 
   target.innerHTML = Object.entries(groups).map(([label, items], idx) => `
     <details class="nested-accordion" ${idx === 0 ? "open" : ""}>
-      <summary><span class="twemoji-icon">${items[0].majorCategoryIcon || ""}</span> ${label} <span>${items.length}개 직무군</span></summary>
+      <summary>${label} <span>${items.length}개 직무군</span></summary>
       <div class="table-wrap">
         <table>
           <thead>
@@ -2860,10 +2890,167 @@ function renderJobFamilyGroups() {
   renderTwemoji(target);
 }
 
+// ── 직급 커스텀 설정 ─────────────────────────────────────────────────────────
+
+let _gradeAllRoles = [];
+
+function getGradeAllRoles() {
+  const codes = getCodeOptions();
+  const roles = [];
+  (codes.jobFamilies || []).forEach((jf) => {
+    (jf.typicalRoles || []).forEach((role) => {
+      if (role && !roles.includes(role)) roles.push(role);
+    });
+  });
+  roles.sort((a, b) => a.localeCompare(b, "ko"));
+  return roles;
+}
+
+function renderGradeRoleList(filter = "") {
+  const list = document.querySelector("#grade-role-list");
+  if (!list) return;
+  const q = filter.trim().toLowerCase();
+  const matches = _gradeAllRoles.filter((r) => !q || r.toLowerCase().includes(q));
+  if (!matches.length) {
+    list.innerHTML = `<div class="search-select-empty">일치하는 직무가 없습니다.</div>`;
+  } else {
+    list.innerHTML = matches.map((r) => `<button type="button" class="search-select-option" onmousedown="selectGradeRole('${r.replace(/'/g, "\\'")}')">${r}</button>`).join("");
+  }
+}
+
+function openGradeRoleSelect() {
+  _gradeAllRoles = getGradeAllRoles();
+  renderGradeRoleList(document.querySelector("#grade-role-search")?.value || "");
+  document.querySelector("#grade-role-select-wrap")?.classList.add("open");
+}
+
+function filterGradeRoleOptions() {
+  renderGradeRoleList(document.querySelector("#grade-role-search")?.value || "");
+}
+
+function selectGradeRole(role) {
+  document.querySelector("#grade-role-key").value = role;
+  document.querySelector("#grade-role-search").value = role;
+  document.querySelector("#grade-role-select-wrap")?.classList.remove("open");
+}
+
+function closeGradeRoleSelect(e) {
+  const wrap = document.querySelector("#grade-role-select-wrap");
+  if (wrap && !wrap.contains(e.target)) wrap.classList.remove("open");
+}
+
+function populateGradeRoleKeyDropdown() {
+  _gradeAllRoles = getGradeAllRoles();
+}
+
+function resetGradeCustomizationForm() {
+  document.querySelector("#grade-original-key").value = "";
+  document.querySelector("#grade-role-key").value = "";
+  document.querySelector("#grade-role-search").value = "";
+  document.querySelector("#grade-role-search").disabled = false;
+  STANDARD_GRADES.forEach((_, i) => {
+    const el = document.querySelector(`#gm-${i}`);
+    if (el) el.value = "";
+  });
+}
+
+function saveGradeCustomization(event) {
+  event.preventDefault();
+  const codes = getCodeOptions();
+  if (!codes.gradeCustomizations) codes.gradeCustomizations = [];
+  const original = document.querySelector("#grade-original-key").value.trim();
+  const roleKey = document.querySelector("#grade-role-key").value.trim();
+  if (!roleKey) { window.alert("직무를 선택해주세요."); return; }
+
+  const gradeMap = {};
+  STANDARD_GRADES.forEach((grade, i) => {
+    const val = (document.querySelector(`#gm-${i}`)?.value || "").trim();
+    if (val) gradeMap[grade] = val;
+  });
+
+  const nextItem = { roleKey, gradeMap };
+  const existingIndex = codes.gradeCustomizations.findIndex((item) => item.roleKey === (original || roleKey));
+  if (existingIndex >= 0) {
+    codes.gradeCustomizations[existingIndex] = nextItem;
+  } else if (!codes.gradeCustomizations.some((item) => item.roleKey === roleKey)) {
+    codes.gradeCustomizations.push(nextItem);
+  } else {
+    window.alert("이미 등록된 직무명입니다.");
+    return;
+  }
+  setCodeOptions(codes);
+  resetGradeCustomizationForm();
+  renderGradeCustomizationTable();
+}
+
+function editGradeCustomization(roleKey) {
+  const item = getCodeOptions().gradeCustomizations?.find((row) => row.roleKey === roleKey);
+  if (!item) return;
+  document.querySelector("#grade-original-key").value = item.roleKey;
+  document.querySelector("#grade-role-key").value = item.roleKey;
+  document.querySelector("#grade-role-search").value = item.roleKey;
+  document.querySelector("#grade-role-search").disabled = true;
+  // gradeMap 방식과 구형 grades 배열 방식 모두 지원
+  const map = item.gradeMap || {};
+  const legacyArr = item.grades || [];
+  STANDARD_GRADES.forEach((grade, i) => {
+    const el = document.querySelector(`#gm-${i}`);
+    if (el) el.value = map[grade] ?? (legacyArr[i] || "");
+  });
+  document.querySelector("#grades-section").classList.add("open");
+  document.querySelector("#grades-section").previousElementSibling?.classList.add("open");
+  document.querySelector("#grades-section").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function deleteGradeCustomization(roleKey) {
+  if (!window.confirm(`"${roleKey}" 직급 커스텀을 삭제하시겠습니까?`)) return;
+  const codes = getCodeOptions();
+  codes.gradeCustomizations = (codes.gradeCustomizations || []).filter((item) => item.roleKey !== roleKey);
+  setCodeOptions(codes);
+  renderGradeCustomizationTable();
+}
+
+function renderGradeCustomizationTable() {
+  const body = document.querySelector("#grade-custom-body");
+  if (!body) return;
+  const items = getCodeOptions().gradeCustomizations || [];
+  if (!items.length) {
+    body.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#94a3b8;padding:20px">등록된 직급 커스텀이 없습니다.</td></tr>`;
+    return;
+  }
+  body.innerHTML = items.map((item) => {
+    const map = item.gradeMap || {};
+    const legacyArr = item.grades || [];
+    const gradeCells = STANDARD_GRADES.map((grade, i) => {
+      const custom = map[grade] ?? (legacyArr[i] || "");
+      return `<td style="font-size:12px;white-space:nowrap">${custom ? `<span style="color:#4f46e5;font-weight:700">${custom}</span>` : `<span style="color:#cbd5e1">—</span>`}</td>`;
+    }).join("");
+    const safeKey = item.roleKey.replace(/'/g, "\\'");
+    return `<tr>
+      <td><strong style="white-space:nowrap">${item.roleKey}</strong></td>
+      ${gradeCells}
+      <td>
+        <div class="table-actions">
+          <button class="button secondary small" type="button" onclick="editGradeCustomization('${safeKey}')">수정</button>
+          <button class="button danger small" type="button" onclick="deleteGradeCustomization('${safeKey}')">삭제</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
 function initializeCodeManagement() {
   if (!document.querySelector("#industries-code-body")) return;
   renderIndustryTable();
   renderJobFamilyGroups();
+  renderGradeCustomizationTable();
+  populateGradeRoleKeyDropdown();
+  document.addEventListener("click", closeGradeRoleSelect);
+  // 기본으로 열린 섹션의 트리거에 open 클래스 동기화
+  document.querySelectorAll(".code-section.open").forEach((section) => {
+    const trigger = section.previousElementSibling;
+    if (trigger?.classList.contains("accordion-trigger")) trigger.classList.add("open");
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

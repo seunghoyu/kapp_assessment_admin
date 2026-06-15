@@ -1,0 +1,1652 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>콘텐츠 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+    <style>
+      /* ── 상단 JF 선택 바 ── */
+      .jf-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .jf-bar label {
+        min-width: 260px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+      }
+      .ov-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px 20px;
+      }
+      .ov-card .ov-label {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .ov-card .ov-num {
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text);
+      }
+      .ov-card .ov-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .ov-card.warn { border-color: #fcd34d; background: #fffbeb; }
+      .ov-card.ok   { border-color: #6ee7b7; background: #ecfdf5; }
+      .flow-chart {
+        display: grid;
+        grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr 28px 1fr;
+        gap: 0;
+        align-items: start;
+        margin-bottom: 20px;
+      }
+      .flow-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .flow-box .flow-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 8px;
+      }
+      .flow-box .flow-item {
+        font-size: 11px;
+        color: var(--text);
+        padding: 3px 0;
+        border-bottom: 1px solid var(--border);
+        line-height: 1.4;
+      }
+      .flow-box .flow-item:last-child { border-bottom: none; }
+      .flow-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: var(--muted);
+        padding-top: 24px;
+      }
+      .check-list { display: grid; gap: 6px; }
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .check-item .ci-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .ci-dot.ok { background: #10b981; }
+      .ci-dot.warn { background: #f59e0b; }
+      .ci-dot.empty { background: #d1d5db; }
+      /* ── 영역 탭 ── */
+      .area-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 0;
+      }
+      .area-tab {
+        border: none;
+        border-radius: 10px 10px 0 0;
+        padding: 11px 20px;
+        background: transparent;
+        font-weight: 800;
+        font-size: 15px;
+        cursor: pointer;
+        color: var(--muted);
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+      }
+      .area-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: var(--soft);
+      }
+      .area-panel { display: none; }
+      .area-panel.active { display: block; }
+      /* ── 서브탭 ── */
+      .sub-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .sub-tab {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 7px 14px;
+        background: #fff;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .sub-tab.active {
+        background: var(--soft);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .sub-panel { display: none; }
+      .sub-panel.active { display: block; }
+      /* ── KPI form ── */
+      .kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+      /* ── opt block ── */
+      .opt-block { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; background: #fafafa; }
+      .opt-block-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 13px; color: var(--muted); }
+      .dim-row3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 8px; }
+      /* ── matrix ── */
+      .matrix-table td input[type="number"] { width: 52px; min-height: 32px; padding: 4px 6px; text-align: center; font-weight: 800; }
+      .matrix-table th, .matrix-table td { font-size: 12px; padding: 8px 10px; }
+      .opt-prev { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      /* ── empty ── */
+      .jf-empty { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--muted); font-weight: 800; font-size: 15px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">콘텐츠 관리</div>
+          <a class="active" href="./jf-manage.html">직무군별 통합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">콘텐츠 관리</h1>
+        <p class="page-subtitle">직무군을 선택하면 K · A · P · 종합 리포트 콘텐츠를 한 화면에서 관리합니다.</p>
+
+        <!-- JF 선택 바 -->
+        <div class="jf-bar">
+          <label>직무군 선택
+            <select id="jf-sel" onchange="onJfChange()" style="margin-top:6px;font-size:14px;font-weight:700">
+              <option value="">-- 직무군을 선택하세요 --</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="jf-empty" class="jf-empty">직무군을 선택하면 콘텐츠 관리 화면이 표시됩니다.</div>
+
+        <div id="jf-content" style="display:none">
+          <!-- 영역 탭 -->
+          <div class="area-tabs">
+            <button class="area-tab active" onclick="switchArea('overview',this)">개요</button>
+            <button class="area-tab" onclick="switchArea('k',this)">K 영역</button>
+            <button class="area-tab" onclick="switchArea('a',this)">A 영역</button>
+            <button class="area-tab" onclick="switchArea('p',this)">P 영역</button>
+            <button class="area-tab" onclick="switchArea('sum',this)">종합 리포트</button>
+          </div>
+
+          <!-- ══════════════════════════════════════
+               개요 탭
+          ══════════════════════════════════════ -->
+          <div class="area-panel active" id="area-overview">
+            <div class="overview-grid" id="ov-stats"></div>
+
+            <!-- 데이터 흐름 차트 -->
+            <section class="card" style="margin-bottom:18px">
+              <h2 style="margin-bottom:16px">데이터 흐름 — 문항 → 결과 리포트</h2>
+              <div class="flow-chart" id="ov-flow">
+                <!-- JS 렌더링 -->
+              </div>
+            </section>
+
+            <!-- 등록 체크리스트 -->
+            <section class="card">
+              <h2 style="margin-bottom:14px">등록 체크리스트</h2>
+              <div class="check-list" id="ov-checklist"></div>
+            </section>
+          </div>
+
+          <!-- ══════════════════════════════════════
+               K 영역
+          ══════════════════════════════════════ -->
+          <div class="area-panel" id="area-k">
+            <div class="sub-tabs">
+              <button class="sub-tab active" onclick="switchSub('k','kset',this)">세트 · 토픽</button>
+              <button class="sub-tab" onclick="switchSub('k','kq',this)">문항</button>
+            </div>
+
+            <!-- K 세트 -->
+            <div class="sub-panel active" id="ksub-kset">
+              <div class="page-header" style="margin-bottom:16px">
+                <div><strong>K 세트 · 토픽</strong> <span class="notice" style="margin-left:8px">세트 1개 = 토픽 1개 = 문항 4개</span></div>
+                <button class="button" onclick="kSetOpenForm(null)">+ 새 세트</button>
+              </div>
+              <div class="split-layout">
+                <div class="split-list">
+                  <div class="split-list-header"><span>세트 목록</span><span class="badge" id="kset-badge">0</span></div>
+                  <div id="kset-list"></div>
+                </div>
+                <div id="kset-form" style="display:none">
+                  <section class="card">
+                    <h2 id="kset-form-title">새 세트</h2>
+                    <div class="grid">
+                      <label>세트 번호 *<input id="ks-no" type="number" min="1" placeholder="1" /></label>
+                      <label>세트명 (토픽명) *<input id="ks-name" placeholder="협상 프레임워크" /></label>
+                      <label>산업군
+                        <select id="ks-ind">
+                          <option value="ALL">ALL</option>
+                          <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                          <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+                          <option value="G">G</option><option value="H">H</option><option value="I">I</option>
+                          <option value="J">J</option><option value="K">K</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label class="stacked">핵심 요약 (K리포트 토픽 설명) *
+                      <textarea id="ks-summary" rows="3" placeholder="BATNA를 사전에 설정해 협상력을 높이는 구조적 접근법입니다."></textarea>
+                    </label>
+                    <label class="stacked">레벨 컨텍스트
+                      <input id="ks-level" placeholder="대리 직급 영업 미팅에서 가장 자주 쓰여요" />
+                    </label>
+                    <div class="actions">
+                      <button class="button secondary" onclick="kSetCloseForm()">취소</button>
+                      <button class="button danger" id="ks-del-btn" style="display:none" onclick="kSetDelete()">삭제</button>
+                      <button class="button" onclick="kSetSave()">저장</button>
+                    </div>
+                  </section>
+                  <div class="criteria-card" id="ks-goto" style="display:none">
+                    <strong>문항 편집</strong>
+                    <div style="margin-top:4px;font-size:12px">세트를 저장한 후 "문항" 탭에서 슬롯 1~4를 등록합니다.</div>
+                    <div style="margin-top:8px">
+                      <button class="button secondary small" onclick="goToKQ()">문항 탭으로 →</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- K 문항 -->
+            <div class="sub-panel" id="ksub-kq">
+              <div style="margin-bottom:14px">
+                <label>세트 선택
+                  <select id="kq-set-sel" onchange="kqOnSetChange()" style="margin-top:6px">
+                    <option value="">-- 세트를 선택하세요 --</option>
+                  </select>
+                </label>
+              </div>
+              <div id="kq-editor" style="display:none">
+                <div class="criteria-card" id="kq-set-info"></div>
+                <div class="slot-tabs" id="kq-slot-tabs">
+                  <button class="slot-tab active" onclick="kqSwitchSlot(1,this)">슬롯 1</button>
+                  <button class="slot-tab" onclick="kqSwitchSlot(2,this)">슬롯 2</button>
+                  <button class="slot-tab" onclick="kqSwitchSlot(3,this)">슬롯 3</button>
+                  <button class="slot-tab" onclick="kqSwitchSlot(4,this)">슬롯 4</button>
+                </div>
+                <div id="kq-slot-panels"></div>
+              </div>
+              <div id="kq-empty" class="jf-empty" style="min-height:100px">세트를 선택하면 슬롯 편집 폼이 표시됩니다.</div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════
+               A 영역
+          ══════════════════════════════════════ -->
+          <div class="area-panel" id="area-a">
+            <div class="sub-tabs">
+              <button class="sub-tab active" onclick="switchSub('a','aq',this)">문항</button>
+              <button class="sub-tab" onclick="switchSub('a','atype',this)">적성 유형</button>
+              <button class="sub-tab" onclick="switchSub('a','amap',this)">유형 매핑</button>
+            </div>
+
+            <!-- A 문항 -->
+            <div class="sub-panel active" id="asub-aq">
+              <div class="page-header" style="margin-bottom:12px">
+                <div>
+                  <div class="tabs" id="a-round-tabs" style="margin:0">
+                    <button class="tab active" onclick="switchRound(1,this)">1라운드</button>
+                    <button class="tab" onclick="switchRound(2,this)">2라운드</button>
+                  </div>
+                </div>
+                <button class="button" onclick="aqOpenForm(null)">+ 새 문항</button>
+              </div>
+              <div class="split-layout">
+                <div class="split-list">
+                  <div class="split-list-header"><span>문항 목록</span><span class="badge" id="aq-badge">0</span></div>
+                  <div id="aq-list"></div>
+                </div>
+                <div id="aq-form" style="display:none">
+                  <section class="card">
+                    <h2 id="aq-form-title">새 문항</h2>
+                    <div class="grid">
+                      <label>문항 번호<input id="aq-no" type="number" min="1" placeholder="1" /></label>
+                      <label>직급
+                        <select id="aq-grade">
+                          <option>주임</option><option>대리</option><option>과장</option><option>차장</option><option>부장</option>
+                        </select>
+                      </label>
+                      <label>업종 클러스터<input id="aq-cluster" placeholder="IT·서비스" /></label>
+                      <label>기업 규모
+                        <select id="aq-compsize">
+                          <option>스타트업</option><option>중소</option><option>중견</option><option>대기업</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label class="stacked">트리거 유형<input id="aq-trigger" placeholder="⑫ 디지털 채널 발견형" /></label>
+                    <label class="stacked">문항 본문 *<textarea id="aq-stem" rows="5" placeholder="시나리오를 입력하세요"></textarea></label>
+                    <div style="margin-top:12px;font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">선지 4개</div>
+                    <div id="aq-opts">
+                      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:800;color:var(--muted);min-width:16px">①</span><input id="aq-o1" placeholder="선지 1" style="flex:1" /></div>
+                      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:800;color:var(--muted);min-width:16px">②</span><input id="aq-o2" placeholder="선지 2" style="flex:1" /></div>
+                      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:800;color:var(--muted);min-width:16px">③</span><input id="aq-o3" placeholder="선지 3" style="flex:1" /></div>
+                      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span style="font-weight:800;color:var(--muted);min-width:16px">④</span><input id="aq-o4" placeholder="선지 4" style="flex:1" /></div>
+                    </div>
+                    <div class="expl-accordion">
+                      <details><summary>① 상황 분석</summary><div><textarea id="aq-e1" rows="3"></textarea></div></details>
+                      <details><summary>② 상황 조건</summary><div><textarea id="aq-e2" rows="3"></textarea></div></details>
+                      <details><summary>③ 상황 변수</summary><div><textarea id="aq-e3" rows="3"></textarea></div></details>
+                      <details><summary>④ 직무 지식</summary><div><textarea id="aq-e4" rows="3"></textarea></div></details>
+                      <details><summary>⑤ 직무 지식 요약</summary><div><textarea id="aq-e5" rows="2"></textarea></div></details>
+                      <details><summary>⑥ 성찰 질문</summary><div><textarea id="aq-e6" rows="3"></textarea></div></details>
+                      <details><summary>⑦ 성찰 요약</summary><div><textarea id="aq-e7" rows="2"></textarea></div></details>
+                      <details><summary>⑧ 현장 패턴 사례</summary><div><textarea id="aq-e8" rows="3"></textarea></div></details>
+                      <details><summary>⑨ 현장 패턴 요약</summary><div><textarea id="aq-e9" rows="2"></textarea></div></details>
+                    </div>
+                    <div class="actions">
+                      <button class="button secondary" onclick="aqCloseForm()">취소</button>
+                      <button class="button danger" id="aq-del-btn" style="display:none" onclick="aqDelete()">삭제</button>
+                      <button class="button" onclick="aqSave()">저장</button>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+
+            <!-- A 유형 -->
+            <div class="sub-panel" id="asub-atype">
+              <div class="page-header" style="margin-bottom:12px">
+                <div></div>
+                <button class="button" onclick="atOpenForm(null)">+ 새 유형</button>
+              </div>
+              <div class="split-layout">
+                <div class="split-list">
+                  <div class="split-list-header"><span>유형 목록</span><span class="badge" id="at-badge">0</span></div>
+                  <div id="at-list"></div>
+                </div>
+                <div id="at-form" style="display:none">
+                  <div class="sub-tabs" id="at-inner-tabs">
+                    <button class="sub-tab active" onclick="switchAtInner('basic',this)">기본</button>
+                    <button class="sub-tab" onclick="switchAtInner('emp',this)">재직자</button>
+                    <button class="sub-tab" onclick="switchAtInner('js',this)">취준생</button>
+                  </div>
+                  <!-- 기본 -->
+                  <section class="card at-inner-panel" id="at-inner-basic">
+                    <h2 id="at-form-title">새 유형</h2>
+                    <div class="grid">
+                      <label>유형명 *<input id="at-name" placeholder="전략" /></label>
+                      <label>직업 뱃지<input id="at-badge-inp" placeholder="B2B 영업 · 대리" /></label>
+                    </div>
+                    <label class="stacked">유형 정의 *<textarea id="at-def" rows="2" placeholder="데이터로 판단하고, 관계로 실행하는 B2B 영업인"></textarea></label>
+                    <label class="stacked">스타일 태그 — 쉼표 구분<input id="at-styletags" placeholder="즉응형, 분석형" /></label>
+                    <label class="stacked">도메인 설명<textarea id="at-domainsub" rows="2"></textarea></label>
+                  </section>
+                  <!-- 재직자 -->
+                  <section class="card at-inner-panel" id="at-inner-emp" style="display:none">
+                    <h2>재직자 콘텐츠</h2>
+                    <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">강점 카드</div>
+                    <div class="dynamic-list" id="at-strength-list"></div>
+                    <button class="button secondary" style="width:100%;margin-bottom:16px" onclick="atAddStrength()">+ 강점 카드</button>
+                    <h3 style="font-size:13px;margin:0 0 8px">의외의 직업 (재직자)</h3>
+                    <div class="grid">
+                      <label>직업명<input id="at-uje-name" /></label>
+                      <label style="grid-column:1/-1">설명<input id="at-uje-desc" /></label>
+                    </div>
+                    <h3 style="font-size:13px;margin:16px 0 8px">성장 방향 (재직자)</h3>
+                    <label>제목<input id="at-gde-title" /></label>
+                    <label class="stacked">본문<textarea id="at-gde-body" rows="3"></textarea></label>
+                    <label class="stacked">이번 주 해보기<input id="at-gde-action" /></label>
+                  </section>
+                  <!-- 취준생 -->
+                  <section class="card at-inner-panel" id="at-inner-js" style="display:none">
+                    <h2>취준생 콘텐츠</h2>
+                    <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px">직무 태그 — 엔터로 추가</div>
+                    <div class="tag-input-wrap" id="at-jobtags-wrap" onclick="this.querySelector('input').focus()">
+                      <input id="at-jobtag-inp" onkeydown="atAddTag(event,'at-jobtags','at-jobtag-inp')" placeholder="전략기획 입력 후 Enter" />
+                    </div>
+                    <input type="hidden" id="at-jobtags" value="[]" />
+                    <div style="font-size:13px;font-weight:800;color:var(--muted);margin:14px 0 6px">유사 직무 — 엔터로 추가</div>
+                    <div class="tag-input-wrap" id="at-simjobs-wrap" onclick="this.querySelector('input').focus()">
+                      <input id="at-simjob-inp" onkeydown="atAddTag(event,'at-simjobs','at-simjob-inp')" placeholder="전략 컨설턴트 입력 후 Enter" />
+                    </div>
+                    <input type="hidden" id="at-simjobs" value="[]" />
+                    <h3 style="font-size:13px;margin:16px 0 8px">의외의 직업 (취준생)</h3>
+                    <div class="grid">
+                      <label>직업명<input id="at-ujj-name" /></label>
+                      <label style="grid-column:1/-1">설명<input id="at-ujj-desc" /></label>
+                    </div>
+                    <h3 style="font-size:13px;margin:16px 0 8px">성장 방향 (취준생)</h3>
+                    <label>제목<input id="at-gdj-title" /></label>
+                    <label class="stacked">본문<textarea id="at-gdj-body" rows="3"></textarea></label>
+                    <label class="stacked">이번 주 해보기<input id="at-gdj-action" /></label>
+                  </section>
+                  <div class="actions" style="padding:0 4px">
+                    <button class="button secondary" onclick="atCloseForm()">취소</button>
+                    <button class="button danger" id="at-del-btn" style="display:none" onclick="atDelete()">삭제</button>
+                    <button class="button" onclick="atSave()">저장</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- A 매핑 -->
+            <div class="sub-panel" id="asub-amap">
+              <div class="criteria-card" style="margin-bottom:16px">
+                <strong>💡</strong><div>각 선지가 유형별로 몇 점을 기여하는지 설정합니다. 0~5 권장. 입력 즉시 저장됩니다.</div>
+              </div>
+              <div id="amap-area">
+                <div class="jf-empty">A영역 문항과 유형이 등록되면 매핑 매트릭스가 표시됩니다.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════
+               P 영역
+          ══════════════════════════════════════ -->
+          <div class="area-panel" id="area-p">
+            <div class="sub-tabs">
+              <button class="sub-tab active" onclick="switchSub('p','pset',this)">문항 세트</button>
+              <button class="sub-tab" onclick="switchSub('p','ptype',this)">패턴 유형</button>
+            </div>
+
+            <!-- P 문항 세트 -->
+            <div class="sub-panel active" id="psub-pset">
+              <div class="page-header" style="margin-bottom:12px">
+                <div><span class="notice">카드 1~4 시나리오 · KPI · 선지 · 차원 점수</span></div>
+                <button class="button" onclick="psOpenForm(null)">+ 새 카드</button>
+              </div>
+              <div class="criteria-card" style="margin-bottom:14px">
+                <strong>💡</strong><div>차원 점수(인사이트·분석·관계개선) 합산이 가장 높은 차원이 메인 패턴 유형이 됩니다.</div>
+              </div>
+              <div class="split-layout">
+                <div class="split-list">
+                  <div class="split-list-header"><span>카드 목록</span><span class="badge" id="ps-badge">0</span></div>
+                  <div id="ps-list"></div>
+                </div>
+                <div id="ps-form" style="display:none">
+                  <section class="card">
+                    <h2 id="ps-form-title">새 카드</h2>
+                    <div class="grid">
+                      <label>카드 번호 (1~4)<input id="ps-no" type="number" min="1" max="4" placeholder="1" /></label>
+                      <label>제목<input id="ps-title" placeholder="B2B SaaS 영업 대리 | 3분기 중간점검" /></label>
+                      <label>마감 뱃지<input id="ps-deadline" placeholder="분기 마감까지 6주" /></label>
+                      <label>메인 질문 *<input id="ps-question" placeholder="이 데이터에서 가장 시급한 이슈는?" /></label>
+                    </div>
+                    <label class="stacked">시나리오 *<textarea id="ps-scenario" rows="3" placeholder="시나리오"></textarea></label>
+                    <label class="stacked">전략 질문 (선택)<input id="ps-stq" placeholder="이 상황에서의 개선 전략은?" /></label>
+                    <hr class="section-divider" />
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                      <span style="font-size:13px;font-weight:800;color:var(--muted)">KPI 지표</span>
+                      <button class="button secondary small" onclick="psAddKpi()">+ 지표 추가</button>
+                    </div>
+                    <div id="ps-kpi-list"></div>
+                    <hr class="section-divider" />
+                    <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px">선지 4개</div>
+                    <div id="ps-opts-list"></div>
+                    <div class="actions">
+                      <button class="button secondary" onclick="psCloseForm()">취소</button>
+                      <button class="button danger" id="ps-del-btn" style="display:none" onclick="psDelete()">삭제</button>
+                      <button class="button" onclick="psSave()">저장</button>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+
+            <!-- P 패턴 유형 -->
+            <div class="sub-panel" id="psub-ptype">
+              <div class="page-header" style="margin-bottom:12px">
+                <div></div>
+                <button class="button" onclick="ptOpenForm(null)">+ 새 유형</button>
+              </div>
+              <div class="split-layout">
+                <div class="split-list">
+                  <div class="split-list-header"><span>패턴 유형 목록</span><span class="badge" id="pt-badge">0</span></div>
+                  <div id="pt-list"></div>
+                </div>
+                <div id="pt-form" style="display:none">
+                  <div class="sub-tabs" id="pt-inner-tabs">
+                    <button class="sub-tab active" onclick="switchPtInner('basic',this)">기본</button>
+                    <button class="sub-tab" onclick="switchPtInner('people',this)">유사 인물</button>
+                    <button class="sub-tab" onclick="switchPtInner('sit',this)">상황 반응</button>
+                  </div>
+                  <section class="card pt-inner-panel" id="pt-inner-basic">
+                    <h2 id="pt-form-title">새 패턴 유형</h2>
+                    <div class="grid">
+                      <label>메인 유형명 *<input id="pt-name" placeholder="인사이트" /></label>
+                      <label>서브 유형명<input id="pt-sub" placeholder="분석" /></label>
+                    </div>
+                    <label class="stacked">행동 설명 *<textarea id="pt-actiondesc" rows="2" placeholder="데이터를 먼저 읽고, 구조화된 판단으로 움직이는 사람이에요"></textarea></label>
+                    <label class="stacked">키워드 — 쉼표 구분<input id="pt-keywords" placeholder="데이터 기반, 구조적 사고" /></label>
+                    <label class="stacked">구성 설명<textarea id="pt-compositiondesc" rows="3"></textarea></label>
+                    <label class="stacked">발견 텍스트<textarea id="pt-discovery" rows="2"></textarea></label>
+                  </section>
+                  <section class="card pt-inner-panel" id="pt-inner-people" style="display:none">
+                    <h2>같은 패턴의 사람들</h2>
+                    <div class="dynamic-list" id="pt-people-list"></div>
+                    <button class="button secondary" style="width:100%" onclick="ptAddPerson()">+ 인물 추가</button>
+                  </section>
+                  <section class="card pt-inner-panel" id="pt-inner-sit" style="display:none">
+                    <h2>상황별 반응 (4개)</h2>
+                    <div id="pt-sit-forms"></div>
+                  </section>
+                  <div class="actions" style="padding:0 4px">
+                    <button class="button secondary" onclick="ptCloseForm()">취소</button>
+                    <button class="button danger" id="pt-del-btn" style="display:none" onclick="ptDelete()">삭제</button>
+                    <button class="button" onclick="ptSave()">저장</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════
+               종합 리포트
+          ══════════════════════════════════════ -->
+          <div class="area-panel" id="area-sum">
+            <div class="page-header" style="margin-bottom:12px">
+              <div class="notice">K케이스 × A유형 × P유형 조합별 페르소나 · 교차분석 · 활용방향 · 추천학습</div>
+              <button class="button" onclick="scOpenForm(null)">+ 새 조합</button>
+            </div>
+            <div class="split-layout">
+              <div>
+                <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap">
+                  <label>K 케이스
+                    <select id="sc-f-kcase" onchange="scRenderList()">
+                      <option value="">전체</option>
+                      <option value="E">E</option><option value="A">A</option>
+                      <option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                    </select>
+                  </label>
+                  <label>A 유형<select id="sc-f-atype" onchange="scRenderList()"><option value="">전체</option></select></label>
+                  <label>P 유형<select id="sc-f-ptype" onchange="scRenderList()"><option value="">전체</option></select></label>
+                </div>
+                <div class="split-list">
+                  <div class="split-list-header"><span>조합 목록</span><span class="badge" id="sc-badge">0</span></div>
+                  <div id="sc-list"></div>
+                </div>
+              </div>
+              <div id="sc-form" style="display:none">
+                <div class="sub-tabs" id="sc-inner-tabs">
+                  <button class="sub-tab active" onclick="switchScInner('persona',this)">페르소나</button>
+                  <button class="sub-tab" onclick="switchScInner('balance',this)">교차 분석</button>
+                  <button class="sub-tab" onclick="switchScInner('usage',this)">활용 방향</button>
+                  <button class="sub-tab" onclick="switchScInner('reco',this)">추천 학습</button>
+                </div>
+                <!-- 페르소나 -->
+                <section class="card sc-inner-panel" id="sc-inner-persona">
+                  <h2 id="sc-form-title">새 KAP 조합</h2>
+                  <div class="grid">
+                    <label>K 케이스 *
+                      <select id="sc-kcase">
+                        <option value="E">E — 전문가</option><option value="A" selected>A — 강함</option>
+                        <option value="B">B — 균형</option><option value="C">C — 성장 중</option><option value="D">D — 발견</option>
+                      </select>
+                    </label>
+                    <label>A 유형명 *<input id="sc-atype" placeholder="전략" /></label>
+                    <label>P 유형명 *<input id="sc-ptype" placeholder="인사이트" /></label>
+                  </div>
+                  <label class="stacked">페르소나 *<textarea id="sc-persona" rows="3" placeholder="데이터로 판단하고 관계로 실행하는 전략가..."></textarea></label>
+                  <label class="stacked">히어로 서브타이틀<input id="sc-herosub" placeholder="K · A · P 세 영역의 교차 분석" /></label>
+                  <hr class="section-divider" />
+                  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                    <span style="font-size:13px;font-weight:800;color:var(--muted)">히든 인사이트</span>
+                    <label style="display:flex;gap:6px;align-items:center;margin:0;font-size:13px">
+                      <input type="checkbox" id="sc-hidden-toggle" onchange="document.getElementById('sc-hidden-fields').style.display=this.checked?'':'none'" />
+                      사용
+                    </label>
+                  </div>
+                  <div id="sc-hidden-fields" style="display:none">
+                    <label>제목<input id="sc-hidden-title" /></label>
+                    <label class="stacked">본문<textarea id="sc-hidden-body" rows="3"></textarea></label>
+                  </div>
+                </section>
+                <!-- 교차 분석 -->
+                <section class="card sc-inner-panel" id="sc-inner-balance" style="display:none">
+                  <h2>교차 분석</h2>
+                  <label>K × A<textarea id="sc-kxa" rows="3"></textarea></label>
+                  <label class="stacked">A × P<textarea id="sc-axp" rows="3"></textarea></label>
+                  <label class="stacked">K × P<textarea id="sc-kxp" rows="3"></textarea></label>
+                </section>
+                <!-- 활용 방향 -->
+                <section class="card sc-inner-panel" id="sc-inner-usage" style="display:none">
+                  <h2>활용 방향</h2>
+                  <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">재직자 3개</div>
+                  <label>①<input id="sc-ue1" /></label>
+                  <label class="stacked">②<input id="sc-ue2" /></label>
+                  <label class="stacked">③<input id="sc-ue3" /></label>
+                  <hr class="section-divider" />
+                  <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">취준생 3개</div>
+                  <label>①<input id="sc-uj1" /></label>
+                  <label class="stacked">②<input id="sc-uj2" /></label>
+                  <label class="stacked">③<input id="sc-uj3" /></label>
+                </section>
+                <!-- 추천 학습 -->
+                <section class="card sc-inner-panel" id="sc-inner-reco" style="display:none">
+                  <h2>추천 학습</h2>
+                  <div class="dynamic-list" id="sc-reco-list"></div>
+                  <button class="button secondary" style="width:100%" onclick="scAddReco()">+ 항목 추가</button>
+                </section>
+                <div class="actions" style="padding:0 4px">
+                  <button class="button secondary" onclick="scCloseForm()">취소</button>
+                  <button class="button danger" id="sc-del-btn" style="display:none" onclick="scDelete()">삭제</button>
+                  <button class="button" onclick="scSave()">저장</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /jf-content -->
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      /* ════════════════ STORAGE KEYS ════════════════ */
+      const KS = "kapp_k_sets_v1";
+      const KQ = "kapp_k_questions_v1";
+      const AQK = "kapp_a_questions_v1";
+      const ATK = "kapp_a_types_v1";
+      const MAPK = "kapp_a_mappings_v1";
+      const PSK = "kapp_p_sets_v1";
+      const PTK = "kapp_p_types_v1";
+      const SCK = "kapp_summary_combos_v1";
+
+      const G = id => document.getElementById(id);
+      function load(key) { try { return JSON.parse(localStorage.getItem(key)||"[]"); } catch { return []; } }
+      function loadObj(key) { try { return JSON.parse(localStorage.getItem(key)||"{}"); } catch { return {}; } }
+      function save(key, d) { localStorage.setItem(key, JSON.stringify(d)); }
+      function genId(prefix) { return prefix + Date.now() + "_" + Math.random().toString(36).slice(2,6); }
+
+      let CUR_JF = "";
+
+      /* ════════════════ JF INIT ════════════════ */
+      function populateJfSel() {
+        const jfs = (getCodeOptions().jobFamilies || []);
+        G("jf-sel").innerHTML = '<option value="">-- 직무군을 선택하세요 --</option>' +
+          jfs.map(j => `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`).join("");
+      }
+
+      function onJfChange() {
+        CUR_JF = G("jf-sel").value;
+        if (!CUR_JF) {
+          G("jf-empty").style.display = "";
+          G("jf-content").style.display = "none";
+          return;
+        }
+        G("jf-empty").style.display = "none";
+        G("jf-content").style.display = "";
+        // 개요 탭을 기본으로 활성화
+        document.querySelectorAll(".area-panel").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".area-tab").forEach(t => t.classList.remove("active"));
+        G("area-overview").classList.add("active");
+        document.querySelector(".area-tab").classList.add("active");
+        refreshAll();
+      }
+
+      function refreshAll() {
+        renderOverview();
+        kSetRenderList();
+        kqPopulateSetSel();
+        aqRenderList();
+        atRenderList();
+        amapRender();
+        psRenderList();
+        ptRenderList();
+        scRefreshTypeFilters();
+        scRenderList();
+      }
+
+      /* ════════════════ 개요 렌더 ════════════════ */
+      function renderOverview() {
+        const kSets   = load(KS).filter(s => s.jobFamilyId === CUR_JF);
+        const kQs     = load(KQ).filter(q => kSets.some(s => s.id === q.setId));
+        const aQs     = load(AQK).filter(q => q.jobFamilyId === CUR_JF);
+        const aTypes  = load(ATK).filter(t => t.jobFamilyId === CUR_JF);
+        const aMaps   = loadObj(MAPK);
+        const pSets   = load(PSK).filter(s => s.jobFamilyId === CUR_JF);
+        const pTypes  = load(PTK).filter(t => t.jobFamilyId === CUR_JF);
+        const combos  = load(SCK).filter(c => c.jobFamilyId === CUR_JF);
+
+        const kSlotsFilled = kQs.length;
+        const kSlotsTotal  = kSets.length * 4;
+        const aMappedOpts  = Object.keys(aMaps).filter(k => {
+          const qId = k.split("_")[0] + "_" + k.split("_")[1];
+          return aQs.some(q => q.id === qId);
+        }).length;
+        const aTotalOpts = aQs.reduce((s,q) => s + (q.options||[]).length, 0);
+
+        // ── 숫자 카드 ──
+        const stats = [
+          { label:"K 세트 (토픽)", num: kSets.length, sub: `문항 ${kSlotsFilled}/${kSlotsTotal}개 등록`,
+            cls: kSets.length === 0 ? "warn" : kSlotsFilled < kSlotsTotal ? "warn" : "ok" },
+          { label:"A 문항", num: aQs.length,
+            sub: `R1: ${aQs.filter(q=>q.round===1).length}개 · R2: ${aQs.filter(q=>q.round===2).length}개 · 유형: ${aTypes.length}개`,
+            cls: aQs.length === 0 ? "warn" : aTypes.length === 0 ? "warn" : "ok" },
+          { label:"P 카드 세트", num: pSets.length, sub: `패턴 유형: ${pTypes.length}개`,
+            cls: pSets.length === 0 ? "warn" : pTypes.length === 0 ? "warn" : "ok" },
+          { label:"종합 KAP 조합", num: combos.length,
+            sub: combos.length === 0 ? "미등록" : `히든 인사이트: ${combos.filter(c=>c.hiddenInsight).length}개`,
+            cls: combos.length === 0 ? "warn" : "ok" },
+        ];
+        G("ov-stats").innerHTML = stats.map(s => `
+          <div class="ov-card ${s.cls}">
+            <div class="ov-label">${s.label}</div>
+            <div class="ov-num">${s.num}</div>
+            <div class="ov-sub">${s.sub}</div>
+          </div>`).join("");
+
+        // ── 데이터 흐름 ──
+        const kSetNames = kSets.slice(0,3).map(s => `#${s.setNo} ${s.setName}`);
+        if (kSets.length > 3) kSetNames.push(`외 ${kSets.length-3}개…`);
+
+        const aTypeNames = aTypes.slice(0,4).map(t => t.typeName);
+        const pTypeNames = pTypes.slice(0,3).map(t => t.typeName + (t.subTypeName ? ' · '+t.subTypeName : ''));
+
+        G("ov-flow").innerHTML = `
+          <div class="flow-box">
+            <div class="flow-title">K 세트 / 문항</div>
+            ${kSetNames.length
+              ? kSetNames.map(n=>`<div class="flow-item">${n}</div>`).join("")
+              : '<div class="flow-item" style="color:var(--muted)">미등록</div>'}
+            <div class="flow-item" style="color:var(--muted);font-size:10px;margin-top:6px">4문항 정오답 → 케이스(E/A/B/C/D)</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">
+            <div class="flow-title">K 리포트</div>
+            <div class="flow-item">케이스 헤드라인</div>
+            <div class="flow-item">토픽 강점 카드</div>
+            <div class="flow-item">토픽 보완 카드</div>
+            <div class="flow-item" style="color:var(--muted);font-size:10px;margin-top:6px">topicCoreSummary + levelContext</div>
+          </div>
+          <div class="flow-arrow">+</div>
+          <div class="flow-box">
+            <div class="flow-title">A 문항 → 유형</div>
+            ${aQs.length
+              ? `<div class="flow-item">R1 ${aQs.filter(q=>q.round===1).length}문항 · R2 ${aQs.filter(q=>q.round===2).length}문항</div>`
+              : '<div class="flow-item" style="color:var(--muted)">미등록</div>'}
+            ${aTypeNames.length
+              ? aTypeNames.map(n=>`<div class="flow-item">${n} 유형</div>`).join("")
+              : '<div class="flow-item" style="color:var(--muted)">유형 미등록</div>'}
+            <div class="flow-item" style="color:var(--muted);font-size:10px;margin-top:6px">선지 가중치 합산 → 최고 유형</div>
+          </div>
+          <div class="flow-arrow">+</div>
+          <div class="flow-box">
+            <div class="flow-title">P 카드 → 패턴</div>
+            ${pSets.length
+              ? pSets.map(s=>`<div class="flow-item">카드 ${s.setNo}</div>`).join("")
+              : '<div class="flow-item" style="color:var(--muted)">미등록</div>'}
+            ${pTypeNames.length
+              ? pTypeNames.map(n=>`<div class="flow-item">${n}</div>`).join("")
+              : '<div class="flow-item" style="color:var(--muted)">유형 미등록</div>'}
+            <div class="flow-item" style="color:var(--muted);font-size:10px;margin-top:6px">차원점수 합산 → 메인 패턴</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">
+            <div class="flow-title">종합 리포트</div>
+            <div class="flow-item">K케이스 × A유형 × P유형</div>
+            <div class="flow-item">페르소나 · 교차분석</div>
+            <div class="flow-item">활용방향 · 추천학습</div>
+            <div class="flow-item" style="color:var(--muted);font-size:10px;margin-top:6px">등록 조합: ${combos.length}개</div>
+          </div>`;
+
+        // ── 체크리스트 ──
+        const checks = [
+          { label:"K 세트 등록 (최소 1개)", ok: kSets.length > 0, warn: false },
+          { label:`K 문항 등록 (슬롯 4개 × 세트 수 = ${kSlotsTotal}개)`, ok: kSlotsFilled === kSlotsTotal && kSlotsTotal > 0, warn: kSlotsFilled > 0 && kSlotsFilled < kSlotsTotal },
+          { label:"A 문항 등록 — 1라운드 (최소 4문항)", ok: aQs.filter(q=>q.round===1).length >= 4, warn: aQs.filter(q=>q.round===1).length > 0 && aQs.filter(q=>q.round===1).length < 4 },
+          { label:"A 문항 등록 — 2라운드 (선택, 4문항 권장)", ok: aQs.filter(q=>q.round===2).length >= 4, warn: aQs.filter(q=>q.round===2).length > 0 },
+          { label:"A 적성 유형 등록 (최소 2개)", ok: aTypes.length >= 2, warn: aTypes.length === 1 },
+          { label:`A 유형 매핑 설정 (선지 ${aTotalOpts}개)`, ok: aMappedOpts >= aTotalOpts && aTotalOpts > 0, warn: aMappedOpts > 0 && aMappedOpts < aTotalOpts },
+          { label:"P 카드 세트 등록 (4개)", ok: pSets.length === 4, warn: pSets.length > 0 && pSets.length < 4 },
+          { label:"P 패턴 유형 등록 (최소 1개)", ok: pTypes.length > 0, warn: false },
+          { label:"종합 KAP 조합 등록 (최소 1개)", ok: combos.length > 0, warn: false },
+        ];
+
+        G("ov-checklist").innerHTML = checks.map(c => {
+          const dot = c.ok ? "ok" : c.warn ? "warn" : "empty";
+          const label = c.ok ? c.label : c.warn ? c.label + " (일부 등록)" : c.label + " (미등록)";
+          return `<div class="check-item"><div class="ci-dot ${dot}"></div><span>${label}</span></div>`;
+        }).join("");
+      }
+
+      /* ════════════════ AREA / SUB TABS ════════════════ */
+      function switchArea(name, btn) {
+        document.querySelectorAll(".area-panel").forEach(p => p.classList.remove("active"));
+        G("area-" + name).classList.add("active");
+        btn.closest(".area-tabs").querySelectorAll(".area-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        if (name === "a" && CUR_JF) amapRender();
+        if (name === "overview" && CUR_JF) renderOverview();
+      }
+
+      function switchSub(area, name, btn) {
+        const prefix = area + "sub-";
+        document.querySelectorAll(`[id^="${prefix}"]`).forEach(p => p.classList.remove("active"));
+        G(prefix + name).classList.add("active");
+        btn.closest(".sub-tabs").querySelectorAll(".sub-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        if (name === "amap") amapRender();
+      }
+
+      /* ════════════════ K 세트 ════════════════ */
+      let ksCurId = null;
+
+      function kSetRenderList() {
+        const sets = load(KS).filter(s => s.jobFamilyId === CUR_JF).sort((a,b) => a.setNo - b.setNo);
+        G("kset-badge").textContent = sets.length;
+        G("kset-list").innerHTML = sets.length
+          ? sets.map(s => `
+              <div class="split-list-item ${ksCurId===s.id?'active':''}" onclick="kSetOpenForm('${s.id}')">
+                <div><div>${s.setName}</div><div class="item-meta">#${s.setNo} · ${s.industryClass}</div></div>
+                <span class="badge">#${s.setNo}</span>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">등록된 세트가 없습니다.</div>';
+      }
+
+      function kSetOpenForm(id) {
+        ksCurId = id;
+        G("kset-form").style.display = "";
+        G("ks-del-btn").style.display = id ? "" : "none";
+        G("ks-goto").style.display = id ? "" : "none";
+        if (!id) {
+          G("kset-form-title").textContent = "새 세트";
+          ["ks-no","ks-name","ks-summary","ks-level"].forEach(i => G(i).value = "");
+          G("ks-ind").value = "ALL";
+        } else {
+          const s = load(KS).find(x => x.id === id);
+          if (!s) return;
+          G("kset-form-title").textContent = "세트 수정";
+          G("ks-no").value = s.setNo;
+          G("ks-name").value = s.setName;
+          G("ks-ind").value = s.industryClass;
+          G("ks-summary").value = s.topicCoreSummary || "";
+          G("ks-level").value = s.topicLevelContext || "";
+        }
+        kSetRenderList();
+      }
+
+      function kSetCloseForm() { ksCurId = null; G("kset-form").style.display = "none"; kSetRenderList(); }
+
+      function kSetSave() {
+        const setNo = parseInt(G("ks-no").value);
+        const setName = G("ks-name").value.trim();
+        const coreSummary = G("ks-summary").value.trim();
+        const levelContext = G("ks-level").value.trim();
+        if (!setNo || !setName || !coreSummary) { alert("세트 번호, 세트명, 핵심 요약을 입력해주세요."); return; }
+        const sets = load(KS);
+        if (!ksCurId && sets.some(s => s.jobFamilyId === CUR_JF && s.setNo === setNo)) {
+          alert(`세트 번호 ${setNo}가 이미 존재합니다.`); return;
+        }
+        const data = { id: ksCurId || genId("ks"), jobFamilyId: CUR_JF, setNo, setName,
+          industryClass: G("ks-ind").value, topicCoreSummary: coreSummary, topicLevelContext: levelContext };
+        const idx = sets.findIndex(s => s.id === data.id);
+        if (idx >= 0) sets[idx] = data; else { sets.push(data); ksCurId = data.id; }
+        save(KS, sets);
+        kSetRenderList();
+        kqPopulateSetSel();
+        G("ks-del-btn").style.display = "";
+        G("ks-goto").style.display = "";
+        alert("저장되었습니다.");
+      }
+
+      function kSetDelete() {
+        if (!confirm("세트를 삭제하시겠습니까?")) return;
+        save(KS, load(KS).filter(s => s.id !== ksCurId));
+        kSetCloseForm();
+      }
+
+      function goToKQ() {
+        document.querySelectorAll(".sub-panel").forEach(p => p.classList.remove("active"));
+        G("ksub-kq").classList.add("active");
+        document.querySelectorAll("#area-k .sub-tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll("#area-k .sub-tab")[1].classList.add("active");
+        kqPopulateSetSel();
+        if (ksCurId) { G("kq-set-sel").value = ksCurId; kqOnSetChange(); }
+      }
+
+      /* ════════════════ K 문항 ════════════════ */
+      let kqCurSetId = null;
+      let kqCurSlot = 1;
+
+      function kqPopulateSetSel() {
+        const sets = load(KS).filter(s => s.jobFamilyId === CUR_JF).sort((a,b) => a.setNo - b.setNo);
+        G("kq-set-sel").innerHTML = '<option value="">-- 세트를 선택하세요 --</option>' +
+          sets.map(s => `<option value="${s.id}">#${s.setNo} – ${s.setName}</option>`).join("");
+        if (kqCurSetId) G("kq-set-sel").value = kqCurSetId;
+      }
+
+      function kqOnSetChange() {
+        kqCurSetId = G("kq-set-sel").value;
+        if (!kqCurSetId) { G("kq-editor").style.display = "none"; G("kq-empty").style.display = ""; return; }
+        const set = load(KS).find(s => s.id === kqCurSetId);
+        G("kq-set-info").innerHTML = `<strong>${set.setName}</strong>&nbsp;<span>#${set.setNo} · ${set.industryClass}</span>`;
+        G("kq-editor").style.display = "";
+        G("kq-empty").style.display = "none";
+        kqRenderSlotPanels();
+        kqSwitchSlot(1, document.querySelectorAll(".slot-tab")[0]);
+      }
+
+      function kqRenderSlotPanels() {
+        G("kq-slot-panels").innerHTML = [1,2,3,4].map(slot => {
+          const q = load(KQ).find(q => q.setId === kqCurSetId && q.slot === slot);
+          const LABELS = "①②③④";
+          return `
+            <div id="kq-panel-${slot}" class="slot-panel ${slot===1?'active':''}">
+              <section class="card">
+                <h2>슬롯 ${slot}</h2>
+                <div class="grid">
+                  <label>능력 단위<input id="kq-s${slot}-ability" value="${q?.abilityUnit||''}" placeholder="신규 고객 개발" /></label>
+                  <label>세분류<input id="kq-s${slot}-sub" value="${q?.subCategory||''}" placeholder="고객 발굴 전략" /></label>
+                  <label>수준
+                    <select id="kq-s${slot}-level">
+                      ${['주임','대리','과장','차장','부장','Lv.3','Lv.4','Lv.5','Lv.6','-'].map(l =>
+                        `<option ${(q?.level||'-')===l?'selected':''}>${l}</option>`).join('')}
+                    </select>
+                  </label>
+                  <label>정답 번호
+                    <select id="kq-s${slot}-ans">
+                      ${[1,2,3,4].map(n => `<option value="${n}" ${(q?.answerIndex||1)===n?'selected':''}>${n}번</option>`).join('')}
+                    </select>
+                  </label>
+                </div>
+                <label class="stacked">문항 본문 *
+                  <textarea id="kq-s${slot}-stem" rows="4" placeholder="문항 본문">${q?.stem||''}</textarea>
+                </label>
+                <div style="margin-top:12px;font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">선지 4개</div>
+                ${[1,2,3,4].map(i => `
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                    <span style="font-weight:800;color:var(--muted);min-width:16px">${LABELS[i-1]}</span>
+                    <input id="kq-s${slot}-o${i}" value="${q?.options?.[i-1]?.text||''}" placeholder="선지 ${i}" style="flex:1" />
+                  </div>`).join('')}
+                <div class="expl-accordion" style="margin-top:10px">
+                  <details><summary>핵심 해설</summary>
+                    <div><textarea id="kq-s${slot}-expl" rows="4">${q?.explanationCore||''}</textarea></div>
+                  </details>
+                </div>
+                <div class="actions">
+                  <button class="button" onclick="kqSaveSlot(${slot})">슬롯 ${slot} 저장</button>
+                </div>
+              </section>
+            </div>`;
+        }).join("");
+      }
+
+      function kqSwitchSlot(slot, btn) {
+        kqCurSlot = slot;
+        document.querySelectorAll(".slot-panel").forEach(p => p.classList.remove("active"));
+        G("kq-panel-" + slot).classList.add("active");
+        document.querySelectorAll(".slot-tab").forEach(t => t.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+      }
+
+      function kqSaveSlot(slot) {
+        const stem = G(`kq-s${slot}-stem`).value.trim();
+        if (!stem) { alert("문항 본문을 입력해주세요."); return; }
+        const opts = [1,2,3,4].map(i => ({ label: "①②③④"[i-1], text: G(`kq-s${slot}-o${i}`).value.trim() }));
+        if (opts.some(o => !o.text)) { alert("선지 4개를 모두 입력해주세요."); return; }
+        const qData = { setId: kqCurSetId, slot,
+          abilityUnit: G(`kq-s${slot}-ability`).value.trim(),
+          subCategory: G(`kq-s${slot}-sub`).value.trim(),
+          level: G(`kq-s${slot}-level`).value,
+          stem, options: opts,
+          answerIndex: parseInt(G(`kq-s${slot}-ans`).value),
+          explanationCore: G(`kq-s${slot}-expl`).value.trim() };
+        const qs = load(KQ);
+        const idx = qs.findIndex(q => q.setId === kqCurSetId && q.slot === slot);
+        if (idx >= 0) qs[idx] = qData; else qs.push(qData);
+        save(KQ, qs);
+        const tab = document.querySelectorAll(".slot-tab")[slot-1];
+        if (tab) { tab.style.background="var(--success-soft)"; tab.style.borderColor="var(--success)"; tab.style.color="var(--success)"; }
+        alert(`슬롯 ${slot} 저장 완료.`);
+      }
+
+      /* ════════════════ A 문항 ════════════════ */
+      let aqCurId = null;
+      let aqCurRound = 1;
+
+      function switchRound(r, btn) {
+        aqCurRound = r;
+        btn.closest(".tabs").querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+        aqRenderList();
+      }
+
+      function aqRenderList() {
+        const qs = load(AQK).filter(q => q.jobFamilyId === CUR_JF && q.round === aqCurRound)
+          .sort((a,b) => a.no - b.no);
+        G("aq-badge").textContent = qs.length;
+        G("aq-list").innerHTML = qs.length
+          ? qs.map(q => `
+              <div class="split-list-item ${aqCurId===q.id?'active':''}" onclick="aqOpenForm('${q.id}')">
+                <div style="min-width:0">
+                  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${q.trigger||q.stem.slice(0,30)}</div>
+                  <div class="item-meta">#${q.no} · ${q.grade} · ${q.cluster||''}</div>
+                </div>
+                <span class="badge">#${q.no}</span>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">문항이 없습니다.</div>';
+      }
+
+      const AQ_EXPL_KEYS = ["situationAnalysis","contextConditions","situationVariables","jobKnowledge",
+        "jobKnowledgeSummary","reflectionQuestion","reflectionSummary","fieldPatternCase","fieldPatternSummary"];
+
+      function aqOpenForm(id) {
+        aqCurId = id;
+        G("aq-form").style.display = "";
+        G("aq-del-btn").style.display = id ? "" : "none";
+        if (!id) {
+          G("aq-form-title").textContent = "새 문항";
+          ["aq-no","aq-stem","aq-o1","aq-o2","aq-o3","aq-o4","aq-trigger","aq-cluster"].forEach(i => G(i).value = "");
+          [1,2,3,4,5,6,7,8,9].forEach(i => G("aq-e"+i).value = "");
+        } else {
+          const q = load(AQK).find(x => x.id === id);
+          if (!q) return;
+          G("aq-form-title").textContent = "문항 수정";
+          G("aq-no").value = q.no;
+          G("aq-grade").value = q.grade;
+          G("aq-cluster").value = q.cluster||"";
+          G("aq-compsize").value = q.companySize||"중견";
+          G("aq-trigger").value = q.trigger||"";
+          G("aq-stem").value = q.stem;
+          [1,2,3,4].forEach(i => G(`aq-o${i}`).value = q.options?.[i-1]?.text||"");
+          AQ_EXPL_KEYS.forEach((k,i) => G("aq-e"+(i+1)).value = q.explanationBlocks?.[k]||"");
+        }
+        aqRenderList();
+      }
+
+      function aqCloseForm() { aqCurId = null; G("aq-form").style.display = "none"; aqRenderList(); }
+
+      function aqSave() {
+        const stem = G("aq-stem").value.trim();
+        if (!stem) { alert("문항 본문을 입력해주세요."); return; }
+        const opts = [1,2,3,4].map(i => ({ label:"①②③④"[i-1], text:G(`aq-o${i}`).value.trim() }));
+        if (opts.some(o => !o.text)) { alert("선지 4개를 모두 입력해주세요."); return; }
+        const explanationBlocks = {};
+        AQ_EXPL_KEYS.forEach((k,i) => { explanationBlocks[k] = G("aq-e"+(i+1)).value.trim(); });
+        const data = { id: aqCurId||genId("aq"), jobFamilyId: CUR_JF,
+          round: aqCurRound, no: parseInt(G("aq-no").value)||1,
+          grade: G("aq-grade").value, cluster: G("aq-cluster").value.trim(),
+          companySize: G("aq-compsize").value, trigger: G("aq-trigger").value.trim(),
+          stem, options: opts, explanationBlocks };
+        const qs = load(AQK);
+        const idx = qs.findIndex(q => q.id === data.id);
+        if (idx >= 0) qs[idx] = data; else { qs.push(data); aqCurId = data.id; }
+        save(AQK, qs);
+        aqRenderList();
+        amapRender();
+        alert("저장되었습니다.");
+      }
+
+      function aqDelete() {
+        if (!confirm("삭제하시겠습니까?")) return;
+        save(AQK, load(AQK).filter(q => q.id !== aqCurId));
+        aqCloseForm();
+        amapRender();
+      }
+
+      /* ════════════════ A 유형 ════════════════ */
+      let atCurId = null;
+      let atStrengths = [];
+
+      function atRenderList() {
+        const types = load(ATK).filter(t => t.jobFamilyId === CUR_JF);
+        G("at-badge").textContent = types.length;
+        G("at-list").innerHTML = types.length
+          ? types.map(t => `
+              <div class="split-list-item ${atCurId===t.id?'active':''}" onclick="atOpenForm('${t.id}')">
+                <div><div>${t.typeName}</div><div class="item-meta">${t.jobBadge||''}</div></div>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">유형이 없습니다.</div>';
+      }
+
+      function atOpenForm(id) {
+        atCurId = id; atStrengths = [];
+        G("at-form").style.display = "";
+        G("at-del-btn").style.display = id ? "" : "none";
+        G("at-jobtags").value = "[]"; G("at-simjobs").value = "[]";
+        if (!id) {
+          G("at-form-title").textContent = "새 유형";
+          ["at-name","at-badge-inp","at-def","at-styletags","at-domainsub",
+           "at-uje-name","at-uje-desc","at-gde-title","at-gde-body","at-gde-action",
+           "at-ujj-name","at-ujj-desc","at-gdj-title","at-gdj-body","at-gdj-action"].forEach(i => G(i).value = "");
+        } else {
+          const t = load(ATK).find(x => x.id === id);
+          if (!t) return;
+          G("at-form-title").textContent = "유형 수정 — " + t.typeName;
+          G("at-name").value = t.typeName||"";
+          G("at-badge-inp").value = t.jobBadge||"";
+          G("at-def").value = t.definition||"";
+          G("at-styletags").value = (t.styleTags||[]).join(", ");
+          G("at-domainsub").value = t.domainSub||"";
+          atStrengths = JSON.parse(JSON.stringify(t.strengthCards||[]));
+          G("at-uje-name").value = t.unexpectedJobEmployee?.name||"";
+          G("at-uje-desc").value = t.unexpectedJobEmployee?.desc||"";
+          G("at-gde-title").value = t.growthDirectionEmployee?.title||"";
+          G("at-gde-body").value = t.growthDirectionEmployee?.body||"";
+          G("at-gde-action").value = t.growthDirectionEmployee?.weekAction||"";
+          G("at-jobtags").value = JSON.stringify(t.jobTags||[]);
+          G("at-simjobs").value = JSON.stringify(t.similarJobs||[]);
+          G("at-ujj-name").value = t.unexpectedJobJobseeker?.name||"";
+          G("at-ujj-desc").value = t.unexpectedJobJobseeker?.desc||"";
+          G("at-gdj-title").value = t.growthDirectionJobseeker?.title||"";
+          G("at-gdj-body").value = t.growthDirectionJobseeker?.body||"";
+          G("at-gdj-action").value = t.growthDirectionJobseeker?.weekAction||"";
+        }
+        atRenderStrengths();
+        atRenderTagsAll();
+        switchAtInner("basic", G("at-inner-tabs").querySelector(".sub-tab"));
+        atRenderList();
+      }
+
+      function atCloseForm() { atCurId = null; G("at-form").style.display = "none"; atRenderList(); }
+
+      function switchAtInner(name, btn) {
+        document.querySelectorAll(".at-inner-panel").forEach(p => p.style.display = "none");
+        G("at-inner-" + name).style.display = "";
+        btn.closest(".sub-tabs").querySelectorAll(".sub-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function atAddStrength(c) { atStrengths.push(c||{title:"",desc:""}); atRenderStrengths(); }
+      function atRenderStrengths() {
+        G("at-strength-list").innerHTML = atStrengths.map((c,i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">강점 카드 ${i+1}
+              <button class="button danger small" onclick="atStrengths.splice(${i},1);atRenderStrengths()">삭제</button>
+            </div>
+            <label>제목<input value="${c.title||''}" oninput="atStrengths[${i}].title=this.value" /></label>
+            <label class="stacked">설명<textarea rows="2" oninput="atStrengths[${i}].desc=this.value">${c.desc||''}</textarea></label>
+          </div>`).join("");
+      }
+
+      function atAddTag(e, hiddenId, inputId) {
+        if (e.key !== "Enter") return; e.preventDefault();
+        const inp = G(inputId); const val = inp.value.trim(); if (!val) return;
+        const tags = JSON.parse(G(hiddenId).value||"[]");
+        if (!tags.includes(val)) { tags.push(val); G(hiddenId).value = JSON.stringify(tags); atRenderTags(hiddenId); }
+        inp.value = "";
+      }
+      function atRemoveTag(hiddenId, val) {
+        G(hiddenId).value = JSON.stringify(JSON.parse(G(hiddenId).value||"[]").filter(t => t !== val));
+        atRenderTags(hiddenId);
+      }
+      function atRenderTags(hiddenId) {
+        const wrapId = hiddenId === "at-jobtags" ? "at-jobtags-wrap" : "at-simjobs-wrap";
+        const inputId = hiddenId === "at-jobtags" ? "at-jobtag-inp" : "at-simjob-inp";
+        const tags = JSON.parse(G(hiddenId).value||"[]");
+        const wrap = G(wrapId); const input = wrap.querySelector("input");
+        wrap.innerHTML = "";
+        tags.forEach(t => {
+          const chip = document.createElement("span"); chip.className = "tag-chip";
+          chip.innerHTML = `${t}<button type="button" onclick="atRemoveTag('${hiddenId}','${t}')">×</button>`;
+          wrap.appendChild(chip);
+        });
+        wrap.appendChild(input);
+      }
+      function atRenderTagsAll() { atRenderTags("at-jobtags"); atRenderTags("at-simjobs"); }
+
+      function atSave() {
+        const typeName = G("at-name").value.trim();
+        if (!typeName) { alert("유형명을 입력해주세요."); return; }
+        const data = { id: atCurId||genId("at"), jobFamilyId: CUR_JF, typeName,
+          jobBadge: G("at-badge-inp").value.trim(), definition: G("at-def").value.trim(),
+          styleTags: G("at-styletags").value.split(",").map(s=>s.trim()).filter(Boolean),
+          domainSub: G("at-domainsub").value.trim(),
+          strengthCards: atStrengths.map(c=>({...c})),
+          unexpectedJobEmployee: { name:G("at-uje-name").value.trim(), desc:G("at-uje-desc").value.trim() },
+          growthDirectionEmployee: { title:G("at-gde-title").value.trim(), body:G("at-gde-body").value.trim(), weekAction:G("at-gde-action").value.trim() },
+          jobTags: JSON.parse(G("at-jobtags").value||"[]"),
+          similarJobs: JSON.parse(G("at-simjobs").value||"[]"),
+          unexpectedJobJobseeker: { name:G("at-ujj-name").value.trim(), desc:G("at-ujj-desc").value.trim() },
+          growthDirectionJobseeker: { title:G("at-gdj-title").value.trim(), body:G("at-gdj-body").value.trim(), weekAction:G("at-gdj-action").value.trim() }
+        };
+        const types = load(ATK);
+        const idx = types.findIndex(t => t.id === data.id);
+        if (idx >= 0) types[idx] = data; else { types.push(data); atCurId = data.id; }
+        save(ATK, types);
+        atRenderList();
+        scRefreshTypeFilters();
+        alert("저장되었습니다.");
+      }
+
+      function atDelete() {
+        if (!confirm("삭제하시겠습니까?")) return;
+        save(ATK, load(ATK).filter(t => t.id !== atCurId));
+        atCloseForm();
+      }
+
+      /* ════════════════ A 매핑 ════════════════ */
+      function amapRender() {
+        if (!CUR_JF) return;
+        const qs = load(AQK).filter(q => q.jobFamilyId === CUR_JF).sort((a,b) => a.round-b.round||a.no-b.no);
+        const types = load(ATK).filter(t => t.jobFamilyId === CUR_JF);
+        const maps = loadObj(MAPK);
+        const area = G("amap-area");
+        if (!qs.length || !types.length) {
+          area.innerHTML = `<div class="jf-empty">문항과 유형을 먼저 등록해주세요.</div>`;
+          return;
+        }
+        const typeNames = types.map(t => t.typeName);
+        area.innerHTML = '<div class="criteria-card" style="margin-bottom:14px"><strong>💡</strong><div>입력 즉시 자동 저장됩니다. 0~5점 권장.</div></div>' +
+          qs.map(q => `
+            <section class="card" style="margin-bottom:12px">
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px">R${q.round} · #${q.no} · ${q.trigger||''}</div>
+              <div style="font-size:12px;color:var(--text);margin-bottom:10px;max-width:600px">${(q.stem||'').slice(0,120)}…</div>
+              <div style="overflow-x:auto;border-radius:12px">
+                <table class="matrix-table" style="border:1px solid var(--border)">
+                  <thead><tr><th>선지</th><th>내용</th>${typeNames.map(tn=>`<th>${tn}</th>`).join('')}</tr></thead>
+                  <tbody>
+                    ${(q.options||[]).map((opt,oi) => {
+                      const key = `${q.id}_${oi}`;
+                      const scores = maps[key]||{};
+                      return `<tr>
+                        <td>${opt.label||'①②③④'[oi]}</td>
+                        <td class="opt-prev">${opt.text||''}</td>
+                        ${typeNames.map(tn=>`<td><input type="number" min="0" max="5" step="1" value="${scores[tn]||0}"
+                          data-key="${key}" data-type="${tn}" oninput="amapUpdate(this)" /></td>`).join('')}
+                      </tr>`;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </section>`).join("");
+      }
+
+      function amapUpdate(inp) {
+        const maps = loadObj(MAPK);
+        if (!maps[inp.dataset.key]) maps[inp.dataset.key] = {};
+        maps[inp.dataset.key][inp.dataset.type] = parseInt(inp.value)||0;
+        save(MAPK, maps);
+      }
+
+      /* ════════════════ P 문항 세트 ════════════════ */
+      let psCurId = null;
+      let psKpis = [];
+      let psOpts = [{},{},{},{}];
+      const DIM_KEYS = ["인사이트","분석","관계개선"];
+
+      function psRenderList() {
+        const sets = load(PSK).filter(s => s.jobFamilyId === CUR_JF).sort((a,b) => a.setNo-b.setNo);
+        G("ps-badge").textContent = sets.length;
+        G("ps-list").innerHTML = sets.length
+          ? sets.map(s => `
+              <div class="split-list-item ${psCurId===s.id?'active':''}" onclick="psOpenForm('${s.id}')">
+                <div><div>카드 ${s.setNo} · ${s.title||'제목 없음'}</div><div class="item-meta">${s.deadlineBadge||''}</div></div>
+                <span class="badge">#${s.setNo}</span>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">카드가 없습니다.</div>';
+      }
+
+      function psOpenForm(id) {
+        psCurId = id; psKpis = []; psOpts = [{},{},{},{}];
+        G("ps-form").style.display = "";
+        G("ps-del-btn").style.display = id ? "" : "none";
+        if (!id) {
+          G("ps-form-title").textContent = "새 카드";
+          ["ps-no","ps-title","ps-deadline","ps-scenario","ps-question","ps-stq"].forEach(i => G(i).value = "");
+        } else {
+          const s = load(PSK).find(x => x.id === id);
+          if (!s) return;
+          G("ps-form-title").textContent = `카드 ${s.setNo} 수정`;
+          G("ps-no").value = s.setNo;
+          G("ps-title").value = s.title||"";
+          G("ps-deadline").value = s.deadlineBadge||"";
+          G("ps-scenario").value = s.scenario||"";
+          G("ps-question").value = s.question||"";
+          G("ps-stq").value = s.strategyQuestion||"";
+          psKpis = JSON.parse(JSON.stringify(s.kpiCards||[]));
+          psOpts = JSON.parse(JSON.stringify(s.options&&s.options.length===4?s.options:[{},{},{},{}]));
+        }
+        psRenderKpis();
+        psRenderOpts();
+        psRenderList();
+      }
+
+      function psCloseForm() { psCurId = null; G("ps-form").style.display = "none"; psRenderList(); }
+
+      function psAddKpi(c) { psKpis.push(c||{label:"",target:"",statusTemplate:"",tone:"neutral"}); psRenderKpis(); }
+      function psRenderKpis() {
+        G("ps-kpi-list").innerHTML = psKpis.map((c,i) => `
+          <div class="kpi-row">
+            <label>지표명<input value="${c.label||''}" oninput="psKpis[${i}].label=this.value" placeholder="분기 매출" /></label>
+            <label>목표<input value="${c.target||''}" oninput="psKpis[${i}].target=this.value" placeholder="3억" /></label>
+            <label>상태 텍스트<input value="${c.statusTemplate||''}" oninput="psKpis[${i}].statusTemplate=this.value" placeholder="40% 달성" /></label>
+            <label>tone
+              <select onchange="psKpis[${i}].tone=this.value">
+                ${["good","warn","bad","neutral"].map(t=>`<option ${c.tone===t?'selected':''}>${t}</option>`).join('')}
+              </select>
+            </label>
+            <button class="button danger small" style="align-self:end" onclick="psKpis.splice(${i},1);psRenderKpis()">삭제</button>
+          </div>`).join("");
+      }
+
+      function psRenderOpts() {
+        G("ps-opts-list").innerHTML = psOpts.map((opt,i) => `
+          <div class="opt-block">
+            <div class="opt-block-hd">선택 ${i+1}</div>
+            <label>선지 본문 *
+              <textarea rows="2" oninput="psOpts[${i}].text=this.value" placeholder="구체적인 전략 행동">${opt.text||''}</textarea>
+            </label>
+            <label class="stacked">패턴 레이블<input value="${opt.patternLabel||''}" oninput="psOpts[${i}].patternLabel=this.value" placeholder="레버리지 진단" /></label>
+            <div class="dim-row3">
+              ${DIM_KEYS.map(dk => `
+                <label>${dk} (0~100)
+                  <input type="number" min="0" max="100" step="5"
+                    value="${opt.dimensionScores?.[dk]||0}"
+                    oninput="if(!psOpts[${i}].dimensionScores)psOpts[${i}].dimensionScores={};psOpts[${i}].dimensionScores['${dk}']=parseInt(this.value)||0" />
+                </label>`).join('')}
+            </div>
+          </div>`).join("");
+      }
+
+      function psSave() {
+        const scenario = G("ps-scenario").value.trim(), question = G("ps-question").value.trim();
+        if (!scenario||!question) { alert("시나리오와 메인 질문을 입력해주세요."); return; }
+        if (psOpts.some(o => !o.text)) { alert("선지 4개 본문을 모두 입력해주세요."); return; }
+        const data = { id: psCurId||genId("ps"), jobFamilyId: CUR_JF,
+          setNo: parseInt(G("ps-no").value)||1, title: G("ps-title").value.trim(),
+          deadlineBadge: G("ps-deadline").value.trim(), scenario, question,
+          strategyQuestion: G("ps-stq").value.trim(),
+          kpiCards: psKpis.map(c=>({...c})),
+          options: psOpts.map((o,i) => ({ label:`선택 ${i+1}`, text:o.text||"", patternLabel:o.patternLabel||"",
+            dimensionScores: o.dimensionScores||{인사이트:0,분석:0,관계개선:0} }))
+        };
+        const sets = load(PSK);
+        const idx = sets.findIndex(s => s.id === data.id);
+        if (idx >= 0) sets[idx] = data; else { sets.push(data); psCurId = data.id; }
+        save(PSK, sets);
+        psRenderList();
+        alert("저장되었습니다.");
+      }
+
+      function psDelete() {
+        if (!confirm("삭제하시겠습니까?")) return;
+        save(PSK, load(PSK).filter(s => s.id !== psCurId));
+        psCloseForm();
+      }
+
+      /* ════════════════ P 패턴 유형 ════════════════ */
+      let ptCurId = null;
+      let ptPeople = [];
+      const SIT_CATS = [
+        {cat:"REV",name:"안정 상황"},{cat:"PRO",name:"조건 변화"},
+        {cat:"ACT",name:"동료 충돌"},{cat:"CUS",name:"시간 압박"}
+      ];
+
+      function ptRenderList() {
+        const types = load(PTK).filter(t => t.jobFamilyId === CUR_JF);
+        G("pt-badge").textContent = types.length;
+        G("pt-list").innerHTML = types.length
+          ? types.map(t => `
+              <div class="split-list-item ${ptCurId===t.id?'active':''}" onclick="ptOpenForm('${t.id}')">
+                <div><div>${t.typeName}${t.subTypeName?' · '+t.subTypeName:''}</div></div>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">패턴 유형이 없습니다.</div>';
+      }
+
+      function ptOpenForm(id) {
+        ptCurId = id; ptPeople = [];
+        G("pt-form").style.display = "";
+        G("pt-del-btn").style.display = id ? "" : "none";
+        if (!id) {
+          G("pt-form-title").textContent = "새 패턴 유형";
+          ["pt-name","pt-sub","pt-actiondesc","pt-keywords","pt-compositiondesc","pt-discovery"].forEach(i => G(i).value = "");
+          ptRenderSitForms({});
+        } else {
+          const t = load(PTK).find(x => x.id === id);
+          if (!t) return;
+          G("pt-form-title").textContent = "유형 수정 — " + t.typeName;
+          G("pt-name").value = t.typeName||"";
+          G("pt-sub").value = t.subTypeName||"";
+          G("pt-actiondesc").value = t.actionDesc||"";
+          G("pt-keywords").value = (t.keywords||[]).join(", ");
+          G("pt-compositiondesc").value = t.compositionDescTemplate||"";
+          G("pt-discovery").value = t.discoveryText||"";
+          ptPeople = JSON.parse(JSON.stringify(t.similarPeople||[]));
+          ptRenderSitForms(t.situations||{});
+        }
+        ptRenderPeople();
+        switchPtInner("basic", G("pt-inner-tabs").querySelector(".sub-tab"));
+        ptRenderList();
+      }
+
+      function ptCloseForm() { ptCurId = null; G("pt-form").style.display = "none"; ptRenderList(); }
+
+      function switchPtInner(name, btn) {
+        document.querySelectorAll(".pt-inner-panel").forEach(p => p.style.display = "none");
+        G("pt-inner-" + name).style.display = "";
+        btn.closest(".sub-tabs").querySelectorAll(".sub-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function ptAddPerson(p) { ptPeople.push(p||{name:"",role:"",category:"실존 인물",oneLiner:"",resemblance:""}); ptRenderPeople(); }
+      function ptRenderPeople() {
+        G("pt-people-list").innerHTML = ptPeople.map((p,i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">인물 ${i+1}
+              <button class="button danger small" onclick="ptPeople.splice(${i},1);ptRenderPeople()">삭제</button>
+            </div>
+            <div class="grid">
+              <label>이름<input value="${p.name||''}" oninput="ptPeople[${i}].name=this.value" placeholder="제프 베이조스" /></label>
+              <label>역할<input value="${p.role||''}" oninput="ptPeople[${i}].role=this.value" placeholder="아마존 창업자" /></label>
+              <label>카테고리
+                <select onchange="ptPeople[${i}].category=this.value">
+                  ${["실존 인물","드라마 캐릭터","글로벌 캐릭터"].map(c=>`<option ${p.category===c?'selected':''}>${c}</option>`).join('')}
+                </select>
+              </label>
+              <label>한 줄 정체성<input value="${p.oneLiner||''}" oninput="ptPeople[${i}].oneLiner=this.value" /></label>
+            </div>
+            <label class="stacked">닮은 점<textarea rows="3" oninput="ptPeople[${i}].resemblance=this.value">${p.resemblance||''}</textarea></label>
+          </div>`).join("");
+      }
+
+      function ptRenderSitForms(saved) {
+        G("pt-sit-forms").innerHTML = SIT_CATS.map((s,i) => {
+          const sv = saved[s.cat]||{};
+          return `${i>0?'<hr class="section-divider" />':''}
+            <div style="margin-bottom:6px"><span class="badge" style="margin-right:8px">${s.cat}</span><strong>${s.name}</strong></div>
+            <label>이 패턴이 한 선택
+              <input id="pt-sit-${s.cat}-choice" value="${sv.choiceText||''}" placeholder="구체적인 선택 행동" />
+            </label>
+            <label class="stacked">이 선택의 의미
+              <textarea id="pt-sit-${s.cat}-meaning" rows="2">${sv.meaning||''}</textarea>
+            </label>`;
+        }).join("");
+      }
+
+      function ptSave() {
+        const typeName = G("pt-name").value.trim();
+        if (!typeName) { alert("메인 유형명을 입력해주세요."); return; }
+        const situations = {};
+        SIT_CATS.forEach(s => {
+          situations[s.cat] = { category:s.cat, name:s.name,
+            choiceText: G(`pt-sit-${s.cat}-choice`).value.trim(),
+            meaning: G(`pt-sit-${s.cat}-meaning`).value.trim() };
+        });
+        const data = { id: ptCurId||genId("pt"), jobFamilyId: CUR_JF, typeName,
+          subTypeName: G("pt-sub").value.trim(), actionDesc: G("pt-actiondesc").value.trim(),
+          keywords: G("pt-keywords").value.split(",").map(s=>s.trim()).filter(Boolean),
+          compositionDescTemplate: G("pt-compositiondesc").value.trim(),
+          discoveryText: G("pt-discovery").value.trim(),
+          similarPeople: ptPeople.map(p=>({...p})), situations
+        };
+        const types = load(PTK);
+        const idx = types.findIndex(t => t.id === data.id);
+        if (idx >= 0) types[idx] = data; else { types.push(data); ptCurId = data.id; }
+        save(PTK, types);
+        ptRenderList();
+        scRefreshTypeFilters();
+        alert("저장되었습니다.");
+      }
+
+      function ptDelete() {
+        if (!confirm("삭제하시겠습니까?")) return;
+        save(PTK, load(PTK).filter(t => t.id !== ptCurId));
+        ptCloseForm();
+      }
+
+      /* ════════════════ 종합 리포트 ════════════════ */
+      let scCurId = null;
+      let scRecos = [];
+
+      function scRefreshTypeFilters() {
+        const atypes = load(ATK).filter(t => t.jobFamilyId === CUR_JF);
+        const ptypes = load(PTK).filter(t => t.jobFamilyId === CUR_JF);
+        G("sc-f-atype").innerHTML = '<option value="">전체</option>' +
+          atypes.map(t => `<option value="${t.typeName}">${t.typeName}</option>`).join("");
+        G("sc-f-ptype").innerHTML = '<option value="">전체</option>' +
+          ptypes.map(t => `<option value="${t.typeName}">${t.typeName}</option>`).join("");
+      }
+
+      function scRenderList() {
+        const kcase = G("sc-f-kcase").value, atype = G("sc-f-atype").value, ptype = G("sc-f-ptype").value;
+        const combos = load(SCK).filter(c => c.jobFamilyId === CUR_JF &&
+          (!kcase||c.kCase===kcase) && (!atype||c.aTypeName===atype) && (!ptype||c.pTypeName===ptype));
+        G("sc-badge").textContent = combos.length;
+        G("sc-list").innerHTML = combos.length
+          ? combos.map(c => `
+              <div class="split-list-item ${scCurId===c.id?'active':''}" onclick="scOpenForm('${c.id}')">
+                <div>
+                  <div>K:${c.kCase} · A:${c.aTypeName} · P:${c.pTypeName}</div>
+                  <div class="item-meta">${c.hiddenInsight?'✦ 히든 인사이트':''}</div>
+                </div>
+              </div>`).join("")
+          : '<div class="empty-state" style="padding:20px">조합이 없습니다.</div>';
+      }
+
+      function scOpenForm(id) {
+        scCurId = id; scRecos = [];
+        G("sc-form").style.display = "";
+        G("sc-del-btn").style.display = id ? "" : "none";
+        if (!id) {
+          G("sc-form-title").textContent = "새 KAP 조합";
+          ["sc-atype","sc-ptype","sc-persona","sc-herosub","sc-kxa","sc-axp","sc-kxp",
+           "sc-ue1","sc-ue2","sc-ue3","sc-uj1","sc-uj2","sc-uj3",
+           "sc-hidden-title","sc-hidden-body"].forEach(i => G(i).value = "");
+          G("sc-hidden-toggle").checked = false;
+          G("sc-hidden-fields").style.display = "none";
+        } else {
+          const c = load(SCK).find(x => x.id === id);
+          if (!c) return;
+          G("sc-form-title").textContent = `K:${c.kCase} A:${c.aTypeName} P:${c.pTypeName}`;
+          G("sc-kcase").value = c.kCase||"A";
+          G("sc-atype").value = c.aTypeName||"";
+          G("sc-ptype").value = c.pTypeName||"";
+          G("sc-persona").value = c.persona||"";
+          G("sc-herosub").value = c.heroSub||"";
+          G("sc-kxa").value = c.balance?.kxa||"";
+          G("sc-axp").value = c.balance?.axp||"";
+          G("sc-kxp").value = c.balance?.kxp||"";
+          ["sc-ue1","sc-ue2","sc-ue3"].forEach((fid,i) => G(fid).value = (c.usageEmployee||[])[i]||"");
+          ["sc-uj1","sc-uj2","sc-uj3"].forEach((fid,i) => G(fid).value = (c.usageJobseeker||[])[i]||"");
+          const hasH = !!c.hiddenInsight?.title;
+          G("sc-hidden-toggle").checked = hasH;
+          G("sc-hidden-fields").style.display = hasH ? "" : "none";
+          G("sc-hidden-title").value = c.hiddenInsight?.title||"";
+          G("sc-hidden-body").value = c.hiddenInsight?.body||"";
+          scRecos = JSON.parse(JSON.stringify(c.recommendations||[]));
+        }
+        scRenderRecos();
+        switchScInner("persona", G("sc-inner-tabs").querySelector(".sub-tab"));
+        scRenderList();
+      }
+
+      function scCloseForm() { scCurId = null; G("sc-form").style.display = "none"; scRenderList(); }
+
+      function switchScInner(name, btn) {
+        document.querySelectorAll(".sc-inner-panel").forEach(p => p.style.display = "none");
+        G("sc-inner-" + name).style.display = "";
+        btn.closest(".sub-tabs").querySelectorAll(".sub-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function scAddReco(r) { scRecos.push(r||{title:"",tag:"",description:""}); scRenderRecos(); }
+      function scRenderRecos() {
+        G("sc-reco-list").innerHTML = scRecos.map((r,i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">항목 ${i+1}
+              <button class="button danger small" onclick="scRecos.splice(${i},1);scRenderRecos()">삭제</button>
+            </div>
+            <div class="grid">
+              <label>제목<input value="${r.title||''}" oninput="scRecos[${i}].title=this.value" /></label>
+              <label>태그<input value="${r.tag||''}" oninput="scRecos[${i}].tag=this.value" placeholder="K 보완" /></label>
+              <label style="grid-column:1/-1">설명<input value="${r.description||''}" oninput="scRecos[${i}].description=this.value" /></label>
+            </div>
+          </div>`).join("");
+      }
+
+      function scSave() {
+        const aTypeName = G("sc-atype").value.trim(), pTypeName = G("sc-ptype").value.trim();
+        const persona = G("sc-persona").value.trim();
+        if (!aTypeName||!pTypeName||!persona) { alert("A 유형명, P 유형명, 페르소나를 입력해주세요."); return; }
+        const hasH = G("sc-hidden-toggle").checked;
+        const data = { id: scCurId||genId("sc"), jobFamilyId: CUR_JF,
+          kCase: G("sc-kcase").value, aTypeName, pTypeName, persona,
+          heroSub: G("sc-herosub").value.trim(),
+          balance: { kxa:G("sc-kxa").value.trim(), axp:G("sc-axp").value.trim(), kxp:G("sc-kxp").value.trim() },
+          hiddenInsight: hasH ? { title:G("sc-hidden-title").value.trim(), body:G("sc-hidden-body").value.trim() } : null,
+          usageEmployee: ["sc-ue1","sc-ue2","sc-ue3"].map(i=>G(i).value.trim()).filter(Boolean),
+          usageJobseeker: ["sc-uj1","sc-uj2","sc-uj3"].map(i=>G(i).value.trim()).filter(Boolean),
+          recommendations: scRecos.map(r=>({...r}))
+        };
+        const combos = load(SCK);
+        const idx = combos.findIndex(c => c.id === data.id);
+        if (idx >= 0) combos[idx] = data; else { combos.push(data); scCurId = data.id; }
+        save(SCK, combos);
+        scRenderList();
+        alert("저장되었습니다.");
+      }
+
+      function scDelete() {
+        if (!confirm("삭제하시겠습니까?")) return;
+        save(SCK, load(SCK).filter(c => c.id !== scCurId));
+        scCloseForm();
+      }
+
+      /* ════════════════ INIT ════════════════ */
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSel();
+        const params = new URLSearchParams(location.search);
+        if (params.get("jf")) { G("jf-sel").value = params.get("jf"); onJfChange(); }
+      });
+    </script>
+  </body>
+</html>

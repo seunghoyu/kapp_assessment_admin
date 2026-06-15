@@ -1,0 +1,292 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>K영역 · 세트 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a class="active" href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">K영역 · 세트 · 토픽 관리</h1>
+            <p class="page-subtitle">직무군별 세트(토픽)를 등록합니다. 세트 하나 = K리포트에 나오는 토픽 1개 = 문항 4개.</p>
+          </div>
+          <button class="button" onclick="openForm(null)">+ 새 세트 등록</button>
+        </div>
+
+        <!-- 필터 -->
+        <section class="card" style="padding:14px 20px">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="min-width:180px">직무군
+              <select id="filter-jf" onchange="renderList()">
+                <option value="">전체</option>
+              </select>
+            </label>
+            <label style="min-width:120px">산업군
+              <select id="filter-industry" onchange="renderList()">
+                <option value="">전체</option>
+                <option value="ALL">ALL</option>
+                <option value="A">A</option><option value="B">B</option>
+                <option value="C">C</option><option value="D">D</option>
+                <option value="E">E</option><option value="F">F</option>
+                <option value="G">G</option><option value="H">H</option>
+                <option value="I">I</option><option value="J">J</option>
+              </select>
+            </label>
+            <label style="min-width:200px">세트명 검색
+              <input id="filter-name" placeholder="세트명 또는 토픽명 입력" oninput="renderList()" />
+            </label>
+          </div>
+        </section>
+
+        <div class="split-layout">
+          <!-- 목록 -->
+          <div>
+            <div class="split-list" id="set-list">
+              <div class="split-list-header">
+                <span id="list-count">세트 목록</span>
+                <span class="badge" id="list-badge">0</span>
+              </div>
+              <div id="set-list-body"></div>
+            </div>
+          </div>
+
+          <!-- 폼 -->
+          <div id="set-form-wrap" style="display:none">
+            <section class="card">
+              <h2 id="form-title">새 세트 등록</h2>
+              <div class="grid">
+                <label>직무군 *
+                  <select id="f-jf"></select>
+                </label>
+                <label>세트 번호 *
+                  <input id="f-setno" type="number" min="1" placeholder="예: 1" />
+                </label>
+                <label>세트명 (토픽명) *
+                  <input id="f-setname" placeholder="예: 고객 발굴 · 접근" />
+                </label>
+                <label>산업군 분류
+                  <select id="f-industry">
+                    <option value="ALL">ALL (전체)</option>
+                    <option value="A">A – 농업·임업·어업</option>
+                    <option value="B">B – 광업</option>
+                    <option value="C">C – 제조업</option>
+                    <option value="D">D – 전기·가스</option>
+                    <option value="E">E – 수도·폐기물</option>
+                    <option value="F">F – 건설업</option>
+                    <option value="G">G – 도매·소매</option>
+                    <option value="H">H – 운수·창고</option>
+                    <option value="I">I – 숙박·음식점</option>
+                    <option value="J">J – 정보통신</option>
+                    <option value="K">K – 금융·보험</option>
+                  </select>
+                </label>
+              </div>
+              <hr class="section-divider" />
+              <h2 style="font-size:15px;margin-bottom:10px">토픽 콘텐츠 <small style="font-weight:500;color:var(--muted)">(K리포트 강점·보완 카드에 표시)</small></h2>
+              <label class="stacked" style="margin-top:0">핵심 요약 (coreSummary) *
+                <textarea id="f-coresummary" rows="3" placeholder="예: BATNA를 사전에 설정해 협상력을 높이는 구조적 접근법입니다."></textarea>
+              </label>
+              <label class="stacked">레벨 컨텍스트 (levelContext) *
+                <input id="f-levelcontext" placeholder="예: 대리 직급 영업 미팅에서 가장 자주 쓰여요" />
+              </label>
+              <div class="actions">
+                <button class="button secondary" onclick="closeForm()">취소</button>
+                <button class="button danger" id="f-delete-btn" style="display:none" onclick="deleteSet()">삭제</button>
+                <button class="button" onclick="saveSet()">저장</button>
+              </div>
+            </section>
+
+            <!-- 문항 바로가기 -->
+            <section class="card" id="f-goto-questions" style="display:none">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <strong style="font-size:14px">이 세트의 문항 관리</strong>
+                  <div class="notice" style="margin-top:4px">슬롯 1~4 문항을 등록·수정합니다.</div>
+                </div>
+                <a id="f-goto-link" href="#" class="button secondary" style="text-decoration:none">문항 관리 →</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const K_SETS_KEY = "kapp_k_sets_v1";
+
+      function getKSets() {
+        try { return JSON.parse(localStorage.getItem(K_SETS_KEY) || "[]"); }
+        catch { return []; }
+      }
+      function saveKSets(data) {
+        localStorage.setItem(K_SETS_KEY, JSON.stringify(data));
+      }
+
+      let editingId = null;
+
+      function genId() { return "ks_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+      function populateJfSelects() {
+        const opts = getCodeOptions();
+        const jfs = opts.jobFamilies || [];
+        ["filter-jf","f-jf"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const prev = el.value;
+          const extraOpt = id === "filter-jf" ? '<option value="">전체</option>' : '';
+          el.innerHTML = extraOpt + jfs.map(j =>
+            `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+          ).join("");
+          if (prev) el.value = prev;
+        });
+      }
+
+      function renderList() {
+        const sets = getKSets();
+        const jfFilter = document.getElementById("filter-jf").value;
+        const indFilter = document.getElementById("filter-industry").value;
+        const nameFilter = document.getElementById("filter-name").value.toLowerCase();
+
+        const filtered = sets.filter(s =>
+          (!jfFilter || s.jobFamilyId === jfFilter) &&
+          (!indFilter || s.industryClass === indFilter) &&
+          (!nameFilter || s.setName.toLowerCase().includes(nameFilter))
+        );
+
+        document.getElementById("list-badge").textContent = filtered.length;
+
+        const body = document.getElementById("set-list-body");
+        if (!filtered.length) {
+          body.innerHTML = '<div class="empty-state" style="padding:24px">등록된 세트가 없습니다.</div>';
+          return;
+        }
+
+        body.innerHTML = filtered
+          .sort((a,b) => (a.jobFamilyId+a.setNo) < (b.jobFamilyId+b.setNo) ? -1 : 1)
+          .map(s => `
+            <div class="split-list-item ${editingId===s.id?'active':''}" onclick="openForm('${s.id}')">
+              <div>
+                <div>${s.setName}</div>
+                <div class="item-meta">${s.jobFamilyId} · #${s.setNo} · ${s.industryClass}</div>
+              </div>
+              <span class="badge">#${s.setNo}</span>
+            </div>
+          `).join("");
+      }
+
+      function openForm(id) {
+        editingId = id;
+        document.getElementById("set-form-wrap").style.display = "";
+        const deleteBtn = document.getElementById("f-delete-btn");
+        const gotoSection = document.getElementById("f-goto-questions");
+
+        if (!id) {
+          document.getElementById("form-title").textContent = "새 세트 등록";
+          ["f-setno","f-setname","f-coresummary","f-levelcontext"].forEach(i => document.getElementById(i).value = "");
+          document.getElementById("f-industry").value = "ALL";
+          deleteBtn.style.display = "none";
+          gotoSection.style.display = "none";
+        } else {
+          const set = getKSets().find(s => s.id === id);
+          if (!set) return;
+          document.getElementById("form-title").textContent = "세트 수정";
+          document.getElementById("f-jf").value = set.jobFamilyId;
+          document.getElementById("f-setno").value = set.setNo;
+          document.getElementById("f-setname").value = set.setName;
+          document.getElementById("f-industry").value = set.industryClass;
+          document.getElementById("f-coresummary").value = set.topicCoreSummary || "";
+          document.getElementById("f-levelcontext").value = set.topicLevelContext || "";
+          deleteBtn.style.display = "";
+          gotoSection.style.display = "";
+          document.getElementById("f-goto-link").href =
+            `./k-question-manage.html?setId=${id}`;
+        }
+        renderList();
+      }
+
+      function closeForm() {
+        editingId = null;
+        document.getElementById("set-form-wrap").style.display = "none";
+        renderList();
+      }
+
+      function saveSet() {
+        const jf = document.getElementById("f-jf").value;
+        const setNo = parseInt(document.getElementById("f-setno").value);
+        const setName = document.getElementById("f-setname").value.trim();
+        const industry = document.getElementById("f-industry").value;
+        const coreSummary = document.getElementById("f-coresummary").value.trim();
+        const levelContext = document.getElementById("f-levelcontext").value.trim();
+
+        if (!jf || !setNo || !setName || !coreSummary || !levelContext) {
+          alert("* 표시 항목과 핵심 요약, 레벨 컨텍스트를 모두 입력해주세요.");
+          return;
+        }
+
+        const sets = getKSets();
+
+        if (editingId) {
+          const idx = sets.findIndex(s => s.id === editingId);
+          if (idx >= 0) {
+            sets[idx] = { ...sets[idx], jobFamilyId:jf, setNo, setName, industryClass:industry, topicCoreSummary:coreSummary, topicLevelContext:levelContext };
+          }
+        } else {
+          // 중복 세트번호 체크
+          if (sets.some(s => s.jobFamilyId===jf && s.setNo===setNo)) {
+            alert(`${jf}의 세트 번호 ${setNo}가 이미 존재합니다.`);
+            return;
+          }
+          const newSet = { id:genId(), jobFamilyId:jf, setNo, setName, industryClass:industry, topicCoreSummary:coreSummary, topicLevelContext:levelContext };
+          sets.push(newSet);
+          editingId = newSet.id;
+        }
+
+        saveKSets(sets);
+        openForm(editingId);
+        renderList();
+        alert("저장되었습니다.");
+      }
+
+      function deleteSet() {
+        if (!confirm("이 세트와 연결된 문항 데이터도 함께 삭제됩니다. 삭제하시겠습니까?")) return;
+        const sets = getKSets().filter(s => s.id !== editingId);
+        saveKSets(sets);
+        closeForm();
+        alert("삭제되었습니다.");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelects();
+        renderList();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,417 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>종합 리포트 · KAP 조합 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a class="active" href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">종합 리포트 · KAP 조합 관리</h1>
+        <p class="page-subtitle">K 결과(케이스) × A 유형 × P 유형 조합별로 페르소나, 교차 분석, 히든 인사이트, 활용 방향, 추천 학습을 등록합니다.</p>
+
+        <div class="criteria-card">
+          <strong>💡 결과 도출 방식</strong>
+          <div>K케이스(E/A/B/C/D) + A 메인 유형명 + P 메인 유형명의 3가지 조합으로 종합 리포트 콘텐츠를 조회합니다. 조합이 등록되어 있지 않으면 기본값이 표시됩니다.</div>
+        </div>
+
+        <!-- 조합 선택 -->
+        <section class="card" style="padding:16px 20px">
+          <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:12px">조합 선택</div>
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="min-width:160px">직무군
+              <select id="filter-jf" onchange="onFilterChange()"></select>
+            </label>
+            <label>K 케이스
+              <select id="filter-kcase" onchange="onFilterChange()">
+                <option value="">전체</option>
+                <option value="E">E — 전문가 (4/4 정답)</option>
+                <option value="A">A — 강함 (3/4 정답)</option>
+                <option value="B">B — 균형 (2/4 정답)</option>
+                <option value="C">C — 성장 중 (1/4 정답)</option>
+                <option value="D">D — 발견 (0/4 정답)</option>
+              </select>
+            </label>
+            <label style="min-width:140px">A 유형
+              <select id="filter-atype" onchange="onFilterChange()">
+                <option value="">전체</option>
+              </select>
+            </label>
+            <label style="min-width:140px">P 유형
+              <select id="filter-ptype" onchange="onFilterChange()">
+                <option value="">전체</option>
+              </select>
+            </label>
+            <button class="button" onclick="openNewForm()">+ 새 조합 등록</button>
+          </div>
+        </section>
+
+        <div class="split-layout" style="margin-top:18px">
+          <!-- 조합 목록 -->
+          <div>
+            <div class="split-list">
+              <div class="split-list-header">
+                <span>등록된 조합</span>
+                <span class="badge" id="list-badge">0</span>
+              </div>
+              <div id="combo-list-body"></div>
+            </div>
+          </div>
+
+          <!-- 편집 패널 -->
+          <div id="combo-form-wrap" style="display:none">
+            <div class="tabs" id="sum-tabs">
+              <button class="tab active" onclick="switchSumTab('identity',this)">페르소나</button>
+              <button class="tab" onclick="switchSumTab('balance',this)">교차 분석</button>
+              <button class="tab" onclick="switchSumTab('usage',this)">활용 방향</button>
+              <button class="tab" onclick="switchSumTab('reco',this)">추천 학습</button>
+            </div>
+
+            <!-- 페르소나 -->
+            <section class="card sum-tab-panel" id="stab-identity">
+              <h2 id="form-title">새 KAP 조합 등록</h2>
+              <div class="grid">
+                <label>직무군 *
+                  <select id="f-jf"></select>
+                </label>
+                <label>K 케이스 *
+                  <select id="f-kcase">
+                    <option value="E">E — 전문가</option>
+                    <option value="A">A — 강함</option>
+                    <option value="B">B — 균형</option>
+                    <option value="C">C — 성장 중</option>
+                    <option value="D">D — 발견</option>
+                  </select>
+                </label>
+                <label>A 유형명 *
+                  <input id="f-atype" placeholder="예: 전략" />
+                </label>
+                <label>P 유형명 *
+                  <input id="f-ptype" placeholder="예: 인사이트" />
+                </label>
+              </div>
+              <label class="stacked">페르소나 텍스트 (persona) *
+                <textarea id="f-persona" rows="3" placeholder="예: 데이터로 판단하고 관계로 실행하는 전략가. 지식은 체계적이고, 적성은 분석적이며, 패턴은 통찰 기반이에요."></textarea>
+              </label>
+              <label class="stacked">히어로 서브타이틀 (heroSub)
+                <input id="f-herosub" placeholder="예: K · A · P 세 영역의 교차 분석" />
+              </label>
+              <hr class="section-divider" />
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                <div style="font-size:13px;font-weight:800;color:var(--muted)">히든 인사이트 (희귀 조합)</div>
+                <label style="display:flex;align-items:center;gap:6px;margin:0;font-size:13px;color:var(--text)">
+                  <input type="checkbox" id="f-hidden-toggle" onchange="toggleHiddenInsight()" />
+                  사용
+                </label>
+              </div>
+              <div id="f-hidden-fields" style="display:none">
+                <label>제목
+                  <input id="f-hidden-title" placeholder="히든 인사이트 제목" />
+                </label>
+                <label class="stacked">본문
+                  <textarea id="f-hidden-body" rows="3" placeholder="이 드문 조합에서 나타나는 특별한 통찰"></textarea>
+                </label>
+              </div>
+            </section>
+
+            <!-- 교차 분석 -->
+            <section class="card sum-tab-panel" id="stab-balance" style="display:none">
+              <h2>K × A × P 교차 분석</h2>
+              <p class="notice" style="margin-bottom:16px">세 영역 간의 관계를 분석한 텍스트입니다. 각 조합에서 드러나는 시너지나 긴장 관계를 설명합니다.</p>
+              <label>K × A 교차 분석 (balance_kxa)
+                <textarea id="f-kxa" rows="3" placeholder="예: 전략적 지식과 분석적 적성이 결합되어 딜 설계 역량이 강화됩니다."></textarea>
+              </label>
+              <label class="stacked">A × P 교차 분석 (balance_axp)
+                <textarea id="f-axp" rows="3" placeholder="예: 관계 중심 적성과 인사이트 패턴이 만나 사람을 통해 문제를 해결하는 유형입니다."></textarea>
+              </label>
+              <label class="stacked">K × P 교차 분석 (balance_kxp)
+                <textarea id="f-kxp" rows="3" placeholder="예: 지식 기반의 판단과 인사이트 패턴이 시너지를 내어 빠른 상황 판단이 가능합니다."></textarea>
+              </label>
+            </section>
+
+            <!-- 활용 방향 -->
+            <section class="card sum-tab-panel" id="stab-usage" style="display:none">
+              <h2>활용 방향 (usage)</h2>
+              <p class="notice" style="margin-bottom:16px">재직자와 취준생 각각 3가지 행동 지침을 작성합니다.</p>
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">재직자 (employed) — 3개</div>
+              <label>① <input id="f-ue1" placeholder="재직자 활용 방향 1" /></label>
+              <label class="stacked">② <input id="f-ue2" placeholder="재직자 활용 방향 2" /></label>
+              <label class="stacked">③ <input id="f-ue3" placeholder="재직자 활용 방향 3" /></label>
+              <hr class="section-divider" />
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:8px">취준생 (jobseeker) — 3개</div>
+              <label>① <input id="f-uj1" placeholder="취준생 활용 방향 1" /></label>
+              <label class="stacked">② <input id="f-uj2" placeholder="취준생 활용 방향 2" /></label>
+              <label class="stacked">③ <input id="f-uj3" placeholder="취준생 활용 방향 3" /></label>
+            </section>
+
+            <!-- 추천 학습 -->
+            <section class="card sum-tab-panel" id="stab-reco" style="display:none">
+              <h2>추천 학습 (recommendations)</h2>
+              <p class="notice" style="margin-bottom:16px">이 KAP 조합 유저에게 제안할 학습 항목을 등록합니다.</p>
+              <div class="dynamic-list" id="reco-list"></div>
+              <button class="button secondary" style="width:100%" onclick="addReco()">+ 추천 항목 추가</button>
+            </section>
+
+            <div class="actions" style="padding:0 4px">
+              <button class="button secondary" onclick="closeForm()">취소</button>
+              <button class="button danger" id="f-delete-btn" style="display:none" onclick="deleteCombo()">삭제</button>
+              <button class="button" onclick="saveCombo()">저장</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const SC_KEY  = "kapp_summary_combos_v1";
+      const AT_KEY  = "kapp_a_types_v1";
+      const PT_KEY  = "kapp_p_types_v1";
+
+      function getSCombos() { try { return JSON.parse(localStorage.getItem(SC_KEY)||"[]"); } catch { return []; } }
+      function saveSCombos(d) { localStorage.setItem(SC_KEY, JSON.stringify(d)); }
+      function getATypes()   { try { return JSON.parse(localStorage.getItem(AT_KEY)||"[]"); } catch { return []; } }
+      function getPTypes()   { try { return JSON.parse(localStorage.getItem(PT_KEY)||"[]"); } catch { return []; } }
+
+      let editingId = null;
+      let recos = [];
+      function genId() { return "sc_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+      /* ── 탭 전환 ── */
+      function switchSumTab(name, btn) {
+        document.querySelectorAll(".sum-tab-panel").forEach(p => p.style.display = "none");
+        document.getElementById("stab-" + name).style.display = "";
+        btn.closest(".tabs").querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function toggleHiddenInsight() {
+        const show = document.getElementById("f-hidden-toggle").checked;
+        document.getElementById("f-hidden-fields").style.display = show ? "" : "none";
+      }
+
+      /* ── 추천 항목 ── */
+      function addReco(item) {
+        recos.push(item || { title:"", tag:"", description:"" });
+        renderRecos();
+      }
+
+      function renderRecos() {
+        document.getElementById("reco-list").innerHTML = recos.map((r,i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">
+              추천 항목 ${i+1}
+              <button class="button danger small" onclick="removeReco(${i})">삭제</button>
+            </div>
+            <div class="grid">
+              <label>제목
+                <input value="${r.title||''}" oninput="recos[${i}].title=this.value" placeholder="예: SPIN 질문기법 마스터하기" />
+              </label>
+              <label>태그 <small style="font-weight:500">(예: K 보완, K 강화, A+P 연계)</small>
+                <input value="${r.tag||''}" oninput="recos[${i}].tag=this.value" placeholder="K 보완" />
+              </label>
+              <label style="grid-column:1/-1">설명
+                <input value="${r.description||''}" oninput="recos[${i}].description=this.value" placeholder="왜 이 학습이 이 유형에게 도움이 되는지" />
+              </label>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function removeReco(i) { recos.splice(i,1); renderRecos(); }
+
+      /* ── 필터 셀렉트 채우기 ── */
+      function populateTypeFilters(jf) {
+        const atypes = getATypes().filter(t => !jf || t.jobFamilyId === jf);
+        const ptypes = getPTypes().filter(t => !jf || t.jobFamilyId === jf);
+        const aSel = document.getElementById("filter-atype");
+        const pSel = document.getElementById("filter-ptype");
+        const prevA = aSel.value, prevP = pSel.value;
+        aSel.innerHTML = '<option value="">전체</option>' +
+          atypes.map(t => `<option value="${t.typeName}">${t.typeName}</option>`).join("");
+        pSel.innerHTML = '<option value="">전체</option>' +
+          ptypes.map(t => `<option value="${t.typeName}">${t.typeName}</option>`).join("");
+        if (prevA) aSel.value = prevA;
+        if (prevP) pSel.value = prevP;
+      }
+
+      function onFilterChange() {
+        const jf = document.getElementById("filter-jf").value;
+        populateTypeFilters(jf);
+        renderList();
+      }
+
+      /* ── 목록 렌더 ── */
+      function renderList() {
+        const jf    = document.getElementById("filter-jf").value;
+        const kcase = document.getElementById("filter-kcase").value;
+        const atype = document.getElementById("filter-atype").value;
+        const ptype = document.getElementById("filter-ptype").value;
+
+        const combos = getSCombos().filter(c =>
+          (!jf    || c.jobFamilyId === jf) &&
+          (!kcase || c.kCase === kcase) &&
+          (!atype || c.aTypeName === atype) &&
+          (!ptype || c.pTypeName === ptype)
+        ).sort((a,b) => (a.kCase+a.aTypeName+a.pTypeName) < (b.kCase+b.aTypeName+b.pTypeName) ? -1 : 1);
+
+        document.getElementById("list-badge").textContent = combos.length;
+        const body = document.getElementById("combo-list-body");
+        if (!combos.length) {
+          body.innerHTML = '<div class="empty-state" style="padding:24px">등록된 조합이 없습니다.</div>';
+          return;
+        }
+        body.innerHTML = combos.map(c => `
+          <div class="split-list-item ${editingId===c.id?'active':''}" onclick="openForm('${c.id}')">
+            <div>
+              <div>K:${c.kCase} · A:${c.aTypeName} · P:${c.pTypeName}</div>
+              <div class="item-meta">${c.jobFamilyId} ${c.hiddenInsight?'· ✦ 히든':''}
+              </div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      /* ── 폼 열기 ── */
+      function openNewForm() { openForm(null); }
+
+      function openForm(id) {
+        editingId = id;
+        document.getElementById("combo-form-wrap").style.display = "";
+        const delBtn = document.getElementById("f-delete-btn");
+        recos = [];
+
+        if (!id) {
+          document.getElementById("form-title").textContent = "새 KAP 조합 등록";
+          ["f-persona","f-herosub","f-kxa","f-axp","f-kxp",
+           "f-ue1","f-ue2","f-ue3","f-uj1","f-uj2","f-uj3",
+           "f-hidden-title","f-hidden-body","f-atype","f-ptype"].forEach(i =>
+            document.getElementById(i).value = "");
+          document.getElementById("f-hidden-toggle").checked = false;
+          document.getElementById("f-hidden-fields").style.display = "none";
+          delBtn.style.display = "none";
+        } else {
+          const c = getSCombos().find(x => x.id === id);
+          if (!c) return;
+          document.getElementById("form-title").textContent = `조합 수정 — K:${c.kCase} A:${c.aTypeName} P:${c.pTypeName}`;
+          document.getElementById("f-jf").value = c.jobFamilyId || "";
+          document.getElementById("f-kcase").value = c.kCase || "A";
+          document.getElementById("f-atype").value = c.aTypeName || "";
+          document.getElementById("f-ptype").value = c.pTypeName || "";
+          document.getElementById("f-persona").value = c.persona || "";
+          document.getElementById("f-herosub").value = c.heroSub || "";
+          document.getElementById("f-kxa").value = c.balance?.kxa || "";
+          document.getElementById("f-axp").value = c.balance?.axp || "";
+          document.getElementById("f-kxp").value = c.balance?.kxp || "";
+          const ue = c.usageEmployee || [];
+          const uj = c.usageJobseeker || [];
+          ["f-ue1","f-ue2","f-ue3"].forEach((fid,i) => document.getElementById(fid).value = ue[i]||"");
+          ["f-uj1","f-uj2","f-uj3"].forEach((fid,i) => document.getElementById(fid).value = uj[i]||"");
+          const hasHidden = !!c.hiddenInsight?.title;
+          document.getElementById("f-hidden-toggle").checked = hasHidden;
+          document.getElementById("f-hidden-fields").style.display = hasHidden ? "" : "none";
+          document.getElementById("f-hidden-title").value = c.hiddenInsight?.title || "";
+          document.getElementById("f-hidden-body").value = c.hiddenInsight?.body || "";
+          recos = JSON.parse(JSON.stringify(c.recommendations||[]));
+          delBtn.style.display = "";
+        }
+
+        renderRecos();
+        switchSumTab("identity", document.querySelector("#sum-tabs .tab"));
+        renderList();
+      }
+
+      function closeForm() {
+        editingId = null;
+        document.getElementById("combo-form-wrap").style.display = "none";
+        renderList();
+      }
+
+      function saveCombo() {
+        const aTypeName = document.getElementById("f-atype").value.trim();
+        const pTypeName = document.getElementById("f-ptype").value.trim();
+        const persona   = document.getElementById("f-persona").value.trim();
+        if (!aTypeName || !pTypeName || !persona) {
+          alert("A 유형명, P 유형명, 페르소나를 입력해주세요."); return;
+        }
+
+        const hasHidden = document.getElementById("f-hidden-toggle").checked;
+        const data = {
+          id: editingId || genId(),
+          jobFamilyId: document.getElementById("f-jf").value,
+          kCase: document.getElementById("f-kcase").value,
+          aTypeName, pTypeName, persona,
+          heroSub: document.getElementById("f-herosub").value.trim(),
+          balance: {
+            kxa: document.getElementById("f-kxa").value.trim(),
+            axp: document.getElementById("f-axp").value.trim(),
+            kxp: document.getElementById("f-kxp").value.trim()
+          },
+          hiddenInsight: hasHidden ? {
+            title: document.getElementById("f-hidden-title").value.trim(),
+            body:  document.getElementById("f-hidden-body").value.trim()
+          } : null,
+          usageEmployee:  ["f-ue1","f-ue2","f-ue3"].map(i => document.getElementById(i).value.trim()).filter(Boolean),
+          usageJobseeker: ["f-uj1","f-uj2","f-uj3"].map(i => document.getElementById(i).value.trim()).filter(Boolean),
+          recommendations: recos.map(r => ({...r}))
+        };
+
+        const combos = getSCombos();
+        const idx = combos.findIndex(c => c.id === data.id);
+        if (idx >= 0) combos[idx] = data; else { combos.push(data); editingId = data.id; }
+        saveSCombos(combos);
+        renderList();
+        alert("저장되었습니다.");
+      }
+
+      function deleteCombo() {
+        if (!confirm("이 조합을 삭제하시겠습니까?")) return;
+        saveSCombos(getSCombos().filter(c => c.id !== editingId));
+        closeForm();
+      }
+
+      function populateJfSelect() {
+        const jfs = getCodeOptions().jobFamilies || [];
+        ["filter-jf","f-jf"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const extra = id === "filter-jf" ? '' : '';
+          el.innerHTML = extra + jfs.map(j =>
+            `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+          ).join("");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelect();
+        populateTypeFilters("");
+        renderList();
+      });
+    </script>
+  </body>
+</html>

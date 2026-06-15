@@ -1,0 +1,427 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A영역 · 적성 유형 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a class="active" href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">A영역 · 적성 유형 관리</h1>
+            <p class="page-subtitle">문항 응답 패턴으로 도출되는 적성 유형과 리포트 콘텐츠를 등록합니다.</p>
+          </div>
+          <button class="button" onclick="openForm(null)">+ 새 유형 등록</button>
+        </div>
+
+        <div class="split-layout">
+          <!-- 유형 목록 -->
+          <div>
+            <div style="margin-bottom:12px">
+              <label>직무군 필터
+                <select id="filter-jf" onchange="renderList()" style="margin-top:6px">
+                  <option value="">전체</option>
+                </select>
+              </label>
+            </div>
+            <div class="split-list">
+              <div class="split-list-header">
+                <span>유형 목록</span>
+                <span class="badge" id="list-badge">0</span>
+              </div>
+              <div id="type-list-body"></div>
+            </div>
+          </div>
+
+          <!-- 편집 패널 -->
+          <div id="type-form-wrap" style="display:none">
+            <!-- 기본 정보 탭 -->
+            <div class="tabs" id="type-tabs">
+              <button class="tab active" onclick="switchTypeTab('basic',this)">기본 정보</button>
+              <button class="tab" onclick="switchTypeTab('employee',this)">재직자</button>
+              <button class="tab" onclick="switchTypeTab('jobseeker',this)">취준생</button>
+              <button class="tab" onclick="switchTypeTab('common',this)">공통 결과</button>
+            </div>
+
+            <!-- 기본 정보 -->
+            <section class="card type-tab-panel" id="tab-basic">
+              <h2 id="form-title">새 유형 등록</h2>
+              <div class="grid">
+                <label>직무군 *
+                  <select id="f-jf"></select>
+                </label>
+                <label>유형명 * <small style="font-weight:500">(예: 전략, 관계, 실행)</small>
+                  <input id="f-typename" placeholder="전략" />
+                </label>
+                <label>직업 뱃지 (jobBadge)
+                  <input id="f-jobbadge" placeholder="예: B2B 영업 · 대리" />
+                </label>
+              </div>
+              <label class="stacked">유형 정의 (definition) *
+                <textarea id="f-definition" rows="3" placeholder="예: 데이터로 판단하고, 관계로 실행하는 B2B 영업인"></textarea>
+              </label>
+              <label class="stacked">스타일 태그 (styleTags) — 쉼표로 구분
+                <input id="f-styletags" placeholder="즉응형, 분석형" />
+              </label>
+              <label class="stacked">도메인 설명 (domainSub)
+                <textarea id="f-domainsub" rows="2" placeholder="큰 그림이 보여야 움직이는 사람이에요 — ..."></textarea>
+              </label>
+            </section>
+
+            <!-- 재직자 -->
+            <section class="card type-tab-panel" id="tab-employee" style="display:none">
+              <h2>재직자 콘텐츠</h2>
+
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px">강점 카드 (strengthCards)</div>
+              <div class="dynamic-list" id="strength-cards-list"></div>
+              <button class="button secondary" style="width:100%" onclick="addStrengthCard()">+ 강점 카드 추가</button>
+
+              <hr class="section-divider" />
+              <h3 style="font-size:14px;margin:0 0 12px">의외의 직업 (unexpectedJob · 재직자)</h3>
+              <div class="grid">
+                <label>직업명
+                  <input id="f-uje-name" placeholder="예: UX 리서처" />
+                </label>
+                <label style="grid-column:1/-1">설명
+                  <input id="f-uje-desc" placeholder="예: 데이터 기반 의사결정과 사용자 인터뷰 구조화 능력이 유사해요" />
+                </label>
+              </div>
+
+              <hr class="section-divider" />
+              <h3 style="font-size:14px;margin:0 0 12px">성장 방향 (growthDirection · 재직자)</h3>
+              <div class="grid">
+                <label>제목
+                  <input id="f-gde-title" placeholder="예: 관계 구축력" />
+                </label>
+              </div>
+              <label class="stacked">본문
+                <textarea id="f-gde-body" rows="3" placeholder="전략을 세우는 힘은 충분해요..."></textarea>
+              </label>
+              <label class="stacked">이번 주 해보기
+                <input id="f-gde-action" placeholder="예: 이번 주 미팅 전에, 상대방이 최근 해결한 문제 1가지를 먼저 찾아보세요." />
+              </label>
+            </section>
+
+            <!-- 취준생 -->
+            <section class="card type-tab-panel" id="tab-jobseeker" style="display:none">
+              <h2>취준생 콘텐츠</h2>
+
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:6px">직무 태그 (jobTags) — 엔터로 추가</div>
+              <div class="tag-input-wrap" id="job-tags-wrap" onclick="this.querySelector('input').focus()">
+                <input id="job-tag-input" placeholder="전략기획 입력 후 Enter" onkeydown="addTag(event,'job-tags','job-tag-input')" />
+              </div>
+              <input type="hidden" id="job-tags" value="[]" />
+
+              <div style="font-size:13px;font-weight:800;color:var(--muted);margin-top:16px;margin-bottom:6px">유사 직무 (similarJobs) — 엔터로 추가</div>
+              <div class="tag-input-wrap" id="similar-jobs-wrap" onclick="this.querySelector('input').focus()">
+                <input id="similar-job-input" placeholder="전략 컨설턴트 입력 후 Enter" onkeydown="addTag(event,'similar-jobs','similar-job-input')" />
+              </div>
+              <input type="hidden" id="similar-jobs" value="[]" />
+
+              <hr class="section-divider" />
+              <h3 style="font-size:14px;margin:0 0 12px">의외의 직업 (unexpectedJob · 취준생)</h3>
+              <div class="grid">
+                <label>직업명
+                  <input id="f-ujj-name" placeholder="예: UX 리서처 / 프로덕트 매니저" />
+                </label>
+                <label style="grid-column:1/-1">설명
+                  <input id="f-ujj-desc" placeholder="예: 전략형 적성은 구조적 사고에 강해요..." />
+                </label>
+              </div>
+
+              <hr class="section-divider" />
+              <h3 style="font-size:14px;margin:0 0 12px">성장 방향 (growthDirection · 취준생)</h3>
+              <div class="grid">
+                <label>제목
+                  <input id="f-gdj-title" placeholder="예: 실전 경험 축적" />
+                </label>
+              </div>
+              <label class="stacked">본문
+                <textarea id="f-gdj-body" rows="3" placeholder="분석력과 전략 수립 능력은 뛰어나요..."></textarea>
+              </label>
+              <label class="stacked">이번 주 해보기
+                <input id="f-gdj-action" placeholder="예: 관심 직무의 JD 3개를 읽고 핵심 키워드 3개를 정리해보세요." />
+              </label>
+            </section>
+
+            <!-- 공통 결과 (저장 버튼 포함) -->
+            <section class="card type-tab-panel" id="tab-common" style="display:none">
+              <h2>공통 결과 콘텐츠</h2>
+              <p class="notice">재직자·취준생 모두에게 표시되는 항목입니다.</p>
+              <div class="actions" style="margin-top:0;margin-bottom:16px;justify-content:flex-start">
+                <button class="button secondary" onclick="closeForm()">취소</button>
+                <button class="button danger" id="f-delete-btn" style="display:none" onclick="deleteType()">유형 삭제</button>
+                <button class="button" onclick="saveType()">전체 저장</button>
+              </div>
+            </section>
+
+            <!-- 항상 보이는 저장 버튼 -->
+            <div class="actions" style="padding:0 4px">
+              <button class="button secondary" onclick="closeForm()">취소</button>
+              <button class="button danger" id="f-delete-btn2" style="display:none" onclick="deleteType()">삭제</button>
+              <button class="button" onclick="saveType()">저장</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const AT_KEY = "kapp_a_types_v1";
+      function getATypes() { try { return JSON.parse(localStorage.getItem(AT_KEY)||"[]"); } catch { return []; } }
+      function saveATypes(d) { localStorage.setItem(AT_KEY, JSON.stringify(d)); }
+
+      let editingId = null;
+      let strengthCards = [];
+      function genId() { return "at_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+      /* ── 탭 전환 ── */
+      function switchTypeTab(name, btn) {
+        document.querySelectorAll(".type-tab-panel").forEach(p => p.style.display = "none");
+        document.getElementById("tab-" + name).style.display = "";
+        btn.closest(".tabs").querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      /* ── 태그 입력 ── */
+      function addTag(e, hiddenId, inputId) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const input = document.getElementById(inputId);
+        const val = input.value.trim();
+        if (!val) return;
+        const tags = JSON.parse(document.getElementById(hiddenId).value || "[]");
+        if (!tags.includes(val)) {
+          tags.push(val);
+          document.getElementById(hiddenId).value = JSON.stringify(tags);
+          renderTags(hiddenId);
+        }
+        input.value = "";
+      }
+
+      function removeTag(hiddenId, val) {
+        const tags = JSON.parse(document.getElementById(hiddenId).value || "[]").filter(t => t !== val);
+        document.getElementById(hiddenId).value = JSON.stringify(tags);
+        renderTags(hiddenId);
+      }
+
+      function renderTags(hiddenId) {
+        const tags = JSON.parse(document.getElementById(hiddenId).value || "[]");
+        const wrap = document.getElementById(hiddenId.replace("job-tags","job-tags-wrap").replace("similar-jobs","similar-jobs-wrap"));
+        if (!wrap) return;
+        const input = wrap.querySelector("input");
+        wrap.innerHTML = "";
+        tags.forEach(t => {
+          const chip = document.createElement("span");
+          chip.className = "tag-chip";
+          chip.innerHTML = `${t}<button type="button" onclick="removeTag('${hiddenId}','${t}')">×</button>`;
+          wrap.appendChild(chip);
+        });
+        wrap.appendChild(input);
+      }
+
+      /* ── 강점 카드 ── */
+      function addStrengthCard(card) {
+        const item = card || { title: "", desc: "" };
+        strengthCards.push(item);
+        renderStrengthCards();
+      }
+
+      function renderStrengthCards() {
+        const list = document.getElementById("strength-cards-list");
+        list.innerHTML = strengthCards.map((c, i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">
+              강점 카드 ${i+1}
+              <button class="button danger small" onclick="removeStrengthCard(${i})">삭제</button>
+            </div>
+            <label>제목
+              <input value="${c.title||''}" oninput="strengthCards[${i}].title=this.value" placeholder="예: 장기 전략 딜 설계" />
+            </label>
+            <label class="stacked">설명
+              <textarea rows="2" oninput="strengthCards[${i}].desc=this.value" placeholder="강점이 드러나는 상황">${c.desc||''}</textarea>
+            </label>
+          </div>
+        `).join("");
+      }
+
+      function removeStrengthCard(i) {
+        strengthCards.splice(i, 1);
+        renderStrengthCards();
+      }
+
+      /* ── 목록 렌더 ── */
+      function renderList() {
+        const jf = document.getElementById("filter-jf").value;
+        const types = getATypes().filter(t => !jf || t.jobFamilyId === jf);
+        document.getElementById("list-badge").textContent = types.length;
+        const body = document.getElementById("type-list-body");
+        if (!types.length) {
+          body.innerHTML = '<div class="empty-state" style="padding:24px">등록된 유형이 없습니다.</div>';
+          return;
+        }
+        body.innerHTML = types.map(t => `
+          <div class="split-list-item ${editingId===t.id?'active':''}" onclick="openForm('${t.id}')">
+            <div>
+              <div>${t.typeName}</div>
+              <div class="item-meta">${t.jobFamilyId} · ${t.jobBadge||''}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      /* ── 폼 열기 ── */
+      function openForm(id) {
+        editingId = id;
+        document.getElementById("type-form-wrap").style.display = "";
+        const del1 = document.getElementById("f-delete-btn");
+        const del2 = document.getElementById("f-delete-btn2");
+
+        strengthCards = [];
+        document.getElementById("job-tags").value = "[]";
+        document.getElementById("similar-jobs").value = "[]";
+
+        if (!id) {
+          document.getElementById("form-title").textContent = "새 유형 등록";
+          ["f-typename","f-jobbadge","f-definition","f-styletags","f-domainsub",
+           "f-uje-name","f-uje-desc","f-gde-title","f-gde-body","f-gde-action",
+           "f-ujj-name","f-ujj-desc","f-gdj-title","f-gdj-body","f-gdj-action"
+          ].forEach(i => document.getElementById(i).value = "");
+          del1.style.display = del2.style.display = "none";
+        } else {
+          const t = getATypes().find(x => x.id === id);
+          if (!t) return;
+          document.getElementById("form-title").textContent = "유형 수정 — " + t.typeName;
+          document.getElementById("f-jf").value = t.jobFamilyId || "";
+          document.getElementById("f-typename").value = t.typeName;
+          document.getElementById("f-jobbadge").value = t.jobBadge || "";
+          document.getElementById("f-definition").value = t.definition || "";
+          document.getElementById("f-styletags").value = (t.styleTags||[]).join(", ");
+          document.getElementById("f-domainsub").value = t.domainSub || "";
+          // 재직자
+          strengthCards = JSON.parse(JSON.stringify(t.strengthCards||[]));
+          document.getElementById("f-uje-name").value = t.unexpectedJobEmployee?.name || "";
+          document.getElementById("f-uje-desc").value = t.unexpectedJobEmployee?.desc || "";
+          document.getElementById("f-gde-title").value = t.growthDirectionEmployee?.title || "";
+          document.getElementById("f-gde-body").value = t.growthDirectionEmployee?.body || "";
+          document.getElementById("f-gde-action").value = t.growthDirectionEmployee?.weekAction || "";
+          // 취준생
+          document.getElementById("job-tags").value = JSON.stringify(t.jobTags||[]);
+          document.getElementById("similar-jobs").value = JSON.stringify(t.similarJobs||[]);
+          document.getElementById("f-ujj-name").value = t.unexpectedJobJobseeker?.name || "";
+          document.getElementById("f-ujj-desc").value = t.unexpectedJobJobseeker?.desc || "";
+          document.getElementById("f-gdj-title").value = t.growthDirectionJobseeker?.title || "";
+          document.getElementById("f-gdj-body").value = t.growthDirectionJobseeker?.body || "";
+          document.getElementById("f-gdj-action").value = t.growthDirectionJobseeker?.weekAction || "";
+          del1.style.display = del2.style.display = "";
+        }
+
+        renderStrengthCards();
+        renderTags("job-tags");
+        renderTags("similar-jobs");
+        switchTypeTab("basic", document.querySelector(".type-tab-panel ~ .type-tab-panel, .tabs .tab"));
+        document.querySelector("#type-tabs .tab").click();
+        renderList();
+      }
+
+      function closeForm() {
+        editingId = null;
+        document.getElementById("type-form-wrap").style.display = "none";
+        renderList();
+      }
+
+      function saveType() {
+        const typeName = document.getElementById("f-typename").value.trim();
+        if (!typeName) { alert("유형명을 입력해주세요."); return; }
+
+        const data = {
+          id: editingId || genId(),
+          jobFamilyId: document.getElementById("f-jf").value,
+          typeName,
+          jobBadge: document.getElementById("f-jobbadge").value.trim(),
+          definition: document.getElementById("f-definition").value.trim(),
+          styleTags: document.getElementById("f-styletags").value.split(",").map(s=>s.trim()).filter(Boolean),
+          domainSub: document.getElementById("f-domainsub").value.trim(),
+          strengthCards: strengthCards.map(c => ({...c})),
+          unexpectedJobEmployee: {
+            name: document.getElementById("f-uje-name").value.trim(),
+            desc: document.getElementById("f-uje-desc").value.trim()
+          },
+          growthDirectionEmployee: {
+            title: document.getElementById("f-gde-title").value.trim(),
+            body: document.getElementById("f-gde-body").value.trim(),
+            weekAction: document.getElementById("f-gde-action").value.trim()
+          },
+          jobTags: JSON.parse(document.getElementById("job-tags").value || "[]"),
+          similarJobs: JSON.parse(document.getElementById("similar-jobs").value || "[]"),
+          unexpectedJobJobseeker: {
+            name: document.getElementById("f-ujj-name").value.trim(),
+            desc: document.getElementById("f-ujj-desc").value.trim()
+          },
+          growthDirectionJobseeker: {
+            title: document.getElementById("f-gdj-title").value.trim(),
+            body: document.getElementById("f-gdj-body").value.trim(),
+            weekAction: document.getElementById("f-gdj-action").value.trim()
+          }
+        };
+
+        const types = getATypes();
+        const idx = types.findIndex(t => t.id === data.id);
+        if (idx >= 0) types[idx] = data; else { types.push(data); editingId = data.id; }
+        saveATypes(types);
+        renderList();
+        alert("저장되었습니다.");
+      }
+
+      function deleteType() {
+        if (!confirm("이 유형을 삭제하시겠습니까?")) return;
+        saveATypes(getATypes().filter(t => t.id !== editingId));
+        closeForm();
+      }
+
+      function populateJfSelects() {
+        const jfs = getCodeOptions().jobFamilies || [];
+        ["filter-jf","f-jf"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const extra = id === "filter-jf" ? '<option value="">전체</option>' : '';
+          el.innerHTML = extra + jfs.map(j =>
+            `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+          ).join("");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelects();
+        renderList();
+      });
+    </script>
+  </body>
+</html>

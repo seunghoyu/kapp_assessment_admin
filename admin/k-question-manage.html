@@ -1,0 +1,284 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>K영역 · 문항 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a class="active" href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">K영역 · 문항 관리</h1>
+        <p class="page-subtitle">세트를 선택한 뒤 슬롯 1~4의 문항을 등록합니다. 슬롯 하나 = 문항 1개.</p>
+
+        <!-- 세트 선택 -->
+        <section class="card" style="padding:14px 20px;margin-bottom:20px">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="min-width:200px">직무군
+              <select id="sel-jf" onchange="onJfChange()"></select>
+            </label>
+            <label style="min-width:260px">세트 선택
+              <select id="sel-set" onchange="onSetChange()">
+                <option value="">-- 세트를 선택하세요 --</option>
+              </select>
+            </label>
+            <a href="./k-set-manage.html" class="button secondary" style="text-decoration:none;white-space:nowrap">세트 관리 →</a>
+          </div>
+        </section>
+
+        <div id="editor-wrap" style="display:none">
+          <!-- 세트 요약 -->
+          <div class="criteria-card" id="set-summary"></div>
+
+          <!-- 슬롯 탭 -->
+          <div class="slot-tabs" id="slot-tabs">
+            <button class="slot-tab active" onclick="switchSlot(1,this)">슬롯 1</button>
+            <button class="slot-tab" onclick="switchSlot(2,this)">슬롯 2</button>
+            <button class="slot-tab" onclick="switchSlot(3,this)">슬롯 3</button>
+            <button class="slot-tab" onclick="switchSlot(4,this)">슬롯 4</button>
+          </div>
+
+          <!-- 슬롯 패널 1~4 -->
+          <div id="slot-panels">
+            <!-- JS로 렌더링 -->
+          </div>
+        </div>
+
+        <div id="empty-notice" class="card empty-state" style="padding:40px">
+          왼쪽에서 직무군과 세트를 선택하면 문항 편집 폼이 표시됩니다.
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const K_SETS_KEY = "kapp_k_sets_v1";
+      const K_QUESTIONS_KEY = "kapp_k_questions_v1";
+
+      function getKSets() {
+        try { return JSON.parse(localStorage.getItem(K_SETS_KEY) || "[]"); } catch { return []; }
+      }
+      function getKQuestions() {
+        try { return JSON.parse(localStorage.getItem(K_QUESTIONS_KEY) || "[]"); } catch { return []; }
+      }
+      function saveKQuestions(data) {
+        localStorage.setItem(K_QUESTIONS_KEY, JSON.stringify(data));
+      }
+
+      let currentSetId = null;
+      let currentSlot = 1;
+
+      function onJfChange() {
+        const jf = document.getElementById("sel-jf").value;
+        const sets = getKSets().filter(s => s.jobFamilyId === jf)
+          .sort((a,b) => a.setNo - b.setNo);
+        const sel = document.getElementById("sel-set");
+        sel.innerHTML = '<option value="">-- 세트를 선택하세요 --</option>' +
+          sets.map(s => `<option value="${s.id}">#${s.setNo} – ${s.setName}</option>`).join("");
+        hideEditor();
+      }
+
+      function onSetChange() {
+        const id = document.getElementById("sel-set").value;
+        if (!id) { hideEditor(); return; }
+        currentSetId = id;
+        currentSlot = 1;
+        showEditor();
+      }
+
+      function hideEditor() {
+        currentSetId = null;
+        document.getElementById("editor-wrap").style.display = "none";
+        document.getElementById("empty-notice").style.display = "";
+      }
+
+      function showEditor() {
+        document.getElementById("editor-wrap").style.display = "";
+        document.getElementById("empty-notice").style.display = "none";
+
+        const set = getKSets().find(s => s.id === currentSetId);
+        if (set) {
+          document.getElementById("set-summary").innerHTML =
+            `<strong>${set.setName}</strong>&nbsp;&nbsp;<span>세트 #${set.setNo} · ${set.jobFamilyId} · ${set.industryClass}</span>&nbsp;&nbsp;
+             <span style="color:var(--muted);font-size:12px">${set.topicCoreSummary || ""}</span>`;
+        }
+
+        renderSlotPanels();
+        switchSlot(1, document.querySelectorAll(".slot-tab")[0]);
+      }
+
+      function renderSlotPanels() {
+        const container = document.getElementById("slot-panels");
+        container.innerHTML = [1,2,3,4].map(slot => {
+          const q = getQuestionForSlot(currentSetId, slot);
+          return `
+            <div id="slot-panel-${slot}" class="slot-panel ${slot===1?'active':''}">
+              <section class="card">
+                <h2>슬롯 ${slot} 문항</h2>
+                <div class="grid">
+                  <label>능력 단위 (ability_unit)
+                    <input id="s${slot}-ability" placeholder="예: 신규 고객 개발" value="${q?.abilityUnit||''}" />
+                  </label>
+                  <label>세분류 (sub_category)
+                    <input id="s${slot}-subcategory" placeholder="예: 고객 발굴 전략" value="${q?.subCategory||''}" />
+                  </label>
+                  <label>수준 (level)
+                    <select id="s${slot}-level">
+                      ${['주임','대리','과장','차장','부장','Lv.3','Lv.4','Lv.5','Lv.6','-'].map(l =>
+                        `<option ${(q?.level||'-')===l?'selected':''}>${l}</option>`
+                      ).join('')}
+                    </select>
+                  </label>
+                  <label>정답 번호 (1~4)
+                    <select id="s${slot}-answer">
+                      ${[1,2,3,4].map(n =>
+                        `<option value="${n}" ${(q?.answerIndex||1)===n?'selected':''}>${n}번</option>`
+                      ).join('')}
+                    </select>
+                  </label>
+                </div>
+
+                <label class="stacked">문항 본문 (stem) *
+                  <textarea id="s${slot}-stem" rows="4" placeholder="문항 본문을 입력하세요">${q?.stem||''}</textarea>
+                </label>
+
+                <div style="margin-top:16px">
+                  <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px">선지 (4개)</div>
+                  ${[1,2,3,4].map(i => `
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                      <span style="font-weight:800;min-width:20px;color:var(--muted)">①②③④`[i-1]+`</span>
+                      <input id="s${slot}-opt${i}" placeholder="선지 ${i}" value="${q?.options?.[i-1]?.text||''}" style="flex:1" />
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="expl-accordion" style="margin-top:16px">
+                  <details>
+                    <summary>핵심 해설 (explanation_core)</summary>
+                    <div>
+                      <textarea id="s${slot}-expl" rows="5" placeholder="핵심 해설을 입력하세요">${q?.explanationCore||''}</textarea>
+                    </div>
+                  </details>
+                </div>
+
+                <div class="actions">
+                  <button class="button" onclick="saveSlot(${slot})">슬롯 ${slot} 저장</button>
+                </div>
+              </section>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function getQuestionForSlot(setId, slot) {
+        return getKQuestions().find(q => q.setId === setId && q.slot === slot);
+      }
+
+      function switchSlot(slot, btn) {
+        currentSlot = slot;
+        document.querySelectorAll(".slot-panel").forEach(p => p.classList.remove("active"));
+        document.getElementById("slot-panel-" + slot).classList.add("active");
+        document.querySelectorAll(".slot-tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      function saveSlot(slot) {
+        const stem = document.getElementById(`s${slot}-stem`).value.trim();
+        if (!stem) { alert("문항 본문을 입력해주세요."); return; }
+
+        const options = [1,2,3,4].map(i => ({
+          label: "①②③④"[i-1],
+          text: document.getElementById(`s${slot}-opt${i}`).value.trim()
+        }));
+
+        if (options.some(o => !o.text)) { alert("선지 4개를 모두 입력해주세요."); return; }
+
+        const qData = {
+          setId: currentSetId,
+          slot,
+          abilityUnit: document.getElementById(`s${slot}-ability`).value.trim(),
+          subCategory: document.getElementById(`s${slot}-subcategory`).value.trim(),
+          level: document.getElementById(`s${slot}-level`).value,
+          stem,
+          options,
+          answerIndex: parseInt(document.getElementById(`s${slot}-answer`).value),
+          explanationCore: document.getElementById(`s${slot}-expl`).value.trim(),
+        };
+
+        const qs = getKQuestions();
+        const idx = qs.findIndex(q => q.setId === currentSetId && q.slot === slot);
+        if (idx >= 0) qs[idx] = qData; else qs.push(qData);
+        saveKQuestions(qs);
+        updateSlotTabBadge(slot);
+        alert(`슬롯 ${slot} 저장 완료.`);
+      }
+
+      function updateSlotTabBadge(slot) {
+        const tabs = document.querySelectorAll(".slot-tab");
+        const q = getQuestionForSlot(currentSetId, slot);
+        const tab = tabs[slot-1];
+        if (tab && q?.stem) {
+          tab.style.background = "var(--success-soft)";
+          tab.style.borderColor = "var(--success)";
+          tab.style.color = "var(--success)";
+        }
+      }
+
+      function refreshTabBadges() {
+        [1,2,3,4].forEach(s => updateSlotTabBadge(s));
+      }
+
+      function populateJfSelect() {
+        const opts = getCodeOptions();
+        const jfs = opts.jobFamilies || [];
+        const sel = document.getElementById("sel-jf");
+        sel.innerHTML = jfs.map(j =>
+          `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+        ).join("");
+      }
+
+      // URL 파라미터로 세트 자동 선택 지원
+      function applyUrlParams() {
+        const params = new URLSearchParams(location.search);
+        const setId = params.get("setId");
+        if (!setId) return;
+        const set = getKSets().find(s => s.id === setId);
+        if (!set) return;
+        document.getElementById("sel-jf").value = set.jobFamilyId;
+        onJfChange();
+        document.getElementById("sel-set").value = setId;
+        onSetChange();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelect();
+        onJfChange();
+        applyUrlParams();
+      });
+    </script>
+  </body>
+</html>

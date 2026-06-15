@@ -523,6 +523,21 @@ img.emoji {
   text-align: left;
 }
 
+.accordion-trigger::after {
+  content: "›";
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--muted);
+  transform: rotate(90deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.accordion-trigger.open::after {
+  transform: rotate(270deg);
+}
+
 .accordion-trigger span {
   font-size: 18px;
   font-weight: 800;
@@ -532,6 +547,83 @@ img.emoji {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.section-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.grade-custom-form {
+  margin-bottom: 18px;
+}
+
+.grade-form-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.grade-map-grid {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.grade-map-header {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0;
+  background: #fafafa;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.grade-map-row {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.grade-map-row:last-child {
+  border-bottom: 0;
+}
+
+.grade-std {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 0 14px;
+  background: #fafafa;
+  border-right: 1px solid var(--border);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.grade-map-row input {
+  border: 0;
+  border-radius: 0;
+  font-size: 13px;
+  min-height: 42px;
+  padding: 10px 14px;
+}
+
+.grade-map-row input:focus {
+  outline: none;
+  background: #f0f4ff;
+}
+
+.grade-map-table-wrap {
+  margin-top: 20px;
 }
 
 .code-section {
@@ -601,6 +693,287 @@ img.emoji {
   width: min(420px, calc(100vw - 40px));
 }
 
+/* ── 사이드바 그룹 레이블 ── */
+.sidebar {
+  overflow-y: auto;
+}
+
+.nav-group-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 12px 14px 4px;
+  margin-top: 4px;
+}
+
+.nav a {
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+/* ── 스플릿 패널 (목록 + 폼) ── */
+.split-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.split-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.split-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.split-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.split-list-item:last-child {
+  border-bottom: 0;
+}
+
+.split-list-item:hover,
+.split-list-item.active {
+  background: var(--soft);
+  color: var(--primary);
+}
+
+.split-list-item .item-meta {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.split-list-item.active .item-meta {
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+/* ── 동적 리스트 항목 ── */
+.dynamic-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dynamic-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  background: #fafafa;
+  position: relative;
+}
+
+.dynamic-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── P 차원 점수 행 ── */
+.dim-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dim-row label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.dim-row input[type="range"] {
+  min-height: auto;
+  padding: 0;
+  border: none;
+}
+
+.dim-row input[type="number"] {
+  min-height: 36px;
+  padding: 6px 8px;
+  text-align: center;
+  font-weight: 800;
+}
+
+/* ── 매핑 매트릭스 ── */
+.matrix-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+}
+
+.matrix-table td input[type="number"] {
+  width: 56px;
+  min-height: 34px;
+  padding: 4px 6px;
+  text-align: center;
+  font-weight: 800;
+}
+
+/* ── 섹션 구분 ── */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+/* ── 인라인 태그 입력 ── */
+.tag-input-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 42px;
+  padding: 6px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: #fff;
+  cursor: text;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--soft);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tag-chip button {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.tag-input-wrap input {
+  border: none;
+  min-height: auto;
+  padding: 0;
+  flex: 1;
+  min-width: 80px;
+  font-size: 13px;
+}
+
+/* ── 슬롯 탭 ── */
+.slot-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.slot-tab {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  background: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.slot-tab.active {
+  background: var(--soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.slot-panel {
+  display: none;
+}
+
+.slot-panel.active {
+  display: block;
+}
+
+/* ── 아코디언 (해설 블록) ── */
+.expl-accordion {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.expl-accordion details {
+  border-bottom: 1px solid var(--border);
+}
+
+.expl-accordion details:last-child {
+  border-bottom: 0;
+}
+
+.expl-accordion summary {
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 12px 14px;
+  color: var(--muted);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.expl-accordion summary::after {
+  content: "▾";
+  font-size: 11px;
+}
+
+.expl-accordion details[open] summary::after {
+  content: "▴";
+}
+
+.expl-accordion details > div {
+  padding: 0 14px 14px;
+}
+
+/* ── combo-filter ── */
+.combo-filter {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.combo-filter label {
+  min-width: 110px;
+}
+
 @media (max-width: 1100px) {
   .filters,
   .analytics-filters,
@@ -639,8 +1012,14 @@ img.emoji {
   .code-form,
   .industries-form,
   .job-family-form,
+  .grade-form-top,
   .kpi-grid {
     grid-template-columns: 1fr;
+  }
+
+  .grade-map-header,
+  .grade-map-row {
+    grid-template-columns: 120px 1fr;
   }
 
   th,

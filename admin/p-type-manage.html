@@ -1,0 +1,335 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>P영역 · 패턴 유형 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a class="active" href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">P영역 · 패턴 유형 관리</h1>
+            <p class="page-subtitle">차원 점수 합산으로 도출되는 패턴 유형과 리포트 콘텐츠(유사 인물, 상황 반응 등)를 등록합니다.</p>
+          </div>
+          <button class="button" onclick="openForm(null)">+ 새 유형 등록</button>
+        </div>
+
+        <div class="split-layout">
+          <!-- 유형 목록 -->
+          <div>
+            <div style="margin-bottom:12px">
+              <label>직무군 필터
+                <select id="filter-jf" onchange="renderList()" style="margin-top:6px">
+                  <option value="">전체</option>
+                </select>
+              </label>
+            </div>
+            <div class="split-list">
+              <div class="split-list-header">
+                <span>패턴 유형 목록</span>
+                <span class="badge" id="list-badge">0</span>
+              </div>
+              <div id="type-list-body"></div>
+            </div>
+          </div>
+
+          <!-- 편집 패널 -->
+          <div id="type-form-wrap" style="display:none">
+            <div class="tabs" id="p-type-tabs">
+              <button class="tab active" onclick="switchPTab('basic',this)">기본 정보</button>
+              <button class="tab" onclick="switchPTab('people',this)">유사 인물</button>
+              <button class="tab" onclick="switchPTab('situations',this)">상황별 반응</button>
+            </div>
+
+            <!-- 기본 정보 -->
+            <section class="card p-tab-panel" id="ptab-basic">
+              <h2 id="form-title">새 패턴 유형 등록</h2>
+              <div class="grid">
+                <label>직무군 *
+                  <select id="f-jf"></select>
+                </label>
+                <label>메인 유형명 * <small style="font-weight:500">(예: 인사이트)</small>
+                  <input id="f-typename" placeholder="인사이트" />
+                </label>
+                <label>서브 유형명 <small style="font-weight:500">(예: 분석)</small>
+                  <input id="f-subtype" placeholder="분석" />
+                </label>
+              </div>
+              <label class="stacked">행동 설명 (actionDesc) *
+                <textarea id="f-actiondesc" rows="2" placeholder="예: 데이터를 먼저 읽고, 구조화된 판단으로 움직이는 사람이에요"></textarea>
+              </label>
+              <label class="stacked">키워드 — 쉼표로 구분
+                <input id="f-keywords" placeholder="데이터 기반, 구조적 사고, 느린 결정·빠른 실행" />
+              </label>
+              <label class="stacked">구성 설명 (compositionDesc)
+                <textarea id="f-compositiondesc" rows="3" placeholder="주유형 인사이트형(70%)에 분석형(30%)이 보조로 작동해요..."></textarea>
+              </label>
+              <label class="stacked">발견 텍스트 (discovery)
+                <textarea id="f-discovery" rows="2" placeholder="이 패턴의 핵심 발견 메시지"></textarea>
+              </label>
+            </section>
+
+            <!-- 유사 인물 -->
+            <section class="card p-tab-panel" id="ptab-people" style="display:none">
+              <h2>같은 패턴의 사람들</h2>
+              <p class="notice" style="margin-bottom:16px">실존 인물, 드라마 캐릭터, 글로벌 캐릭터 중에서 이 패턴과 닮은 인물을 등록합니다.</p>
+              <div class="dynamic-list" id="similar-people-list"></div>
+              <button class="button secondary" style="width:100%" onclick="addSimilarPerson()">+ 인물 추가</button>
+            </section>
+
+            <!-- 상황별 반응 (4개 고정: REV/PRO/ACT/CUS) -->
+            <section class="card p-tab-panel" id="ptab-situations" style="display:none">
+              <h2>상황별 반응 (4개)</h2>
+              <p class="notice" style="margin-bottom:16px">각 상황 유형에 대해 이 패턴이 어떻게 반응하는지 등록합니다.</p>
+
+              <div id="situation-forms">
+                <!-- REV, PRO, ACT, CUS -->
+              </div>
+            </section>
+
+            <div class="actions" style="padding:0 4px">
+              <button class="button secondary" onclick="closeForm()">취소</button>
+              <button class="button danger" id="f-delete-btn" style="display:none" onclick="deleteType()">삭제</button>
+              <button class="button" onclick="saveType()">저장</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const PT_KEY = "kapp_p_types_v1";
+      function getPTypes() { try { return JSON.parse(localStorage.getItem(PT_KEY)||"[]"); } catch { return []; } }
+      function savePTypes(d) { localStorage.setItem(PT_KEY, JSON.stringify(d)); }
+
+      let editingId = null;
+      let similarPeople = [];
+      const SITUATIONS = [
+        { category:"REV", name:"안정 상황", desc:"현재 상태가 안정적일 때" },
+        { category:"PRO", name:"조건 변화", desc:"상황이 바뀌었을 때" },
+        { category:"ACT", name:"동료 충돌", desc:"내부 갈등이 있을 때" },
+        { category:"CUS", name:"시간 압박", desc:"마감 압박이 있을 때" },
+      ];
+      const PERSON_CATEGORIES = ["실존 인물","드라마 캐릭터","글로벌 캐릭터"];
+      function genId() { return "pt_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+      /* ── 탭 전환 ── */
+      function switchPTab(name, btn) {
+        document.querySelectorAll(".p-tab-panel").forEach(p => p.style.display = "none");
+        document.getElementById("ptab-" + name).style.display = "";
+        btn.closest(".tabs").querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        btn.classList.add("active");
+      }
+
+      /* ── 유사 인물 ── */
+      function addSimilarPerson(person) {
+        similarPeople.push(person || { name:"", role:"", category:"실존 인물", oneLiner:"", resemblance:"" });
+        renderSimilarPeople();
+      }
+
+      function renderSimilarPeople() {
+        const list = document.getElementById("similar-people-list");
+        list.innerHTML = similarPeople.map((p,i) => `
+          <div class="dynamic-item">
+            <div class="dynamic-item-header">
+              인물 ${i+1}
+              <button class="button danger small" onclick="removeSimilarPerson(${i})">삭제</button>
+            </div>
+            <div class="grid">
+              <label>이름
+                <input value="${p.name||''}" oninput="similarPeople[${i}].name=this.value" placeholder="예: 제프 베이조스" />
+              </label>
+              <label>역할/설명
+                <input value="${p.role||''}" oninput="similarPeople[${i}].role=this.value" placeholder="예: 아마존 창업자" />
+              </label>
+              <label>카테고리
+                <select onchange="similarPeople[${i}].category=this.value">
+                  ${PERSON_CATEGORIES.map(c =>
+                    `<option ${p.category===c?'selected':''}>${c}</option>`
+                  ).join("")}
+                </select>
+              </label>
+              <label>한 줄 정체성
+                <input value="${p.oneLiner||''}" oninput="similarPeople[${i}].oneLiner=this.value" placeholder="예: 고객 집착과 장기주의로 아마존을 세운 경영자예요." />
+              </label>
+            </div>
+            <label class="stacked">닮은 점 (resemblance) — 줄바꿈으로 구분
+              <textarea rows="3" oninput="similarPeople[${i}].resemblance=this.value" placeholder="닮은 점 1\n닮은 점 2\n닮은 점 3">${p.resemblance||''}</textarea>
+            </label>
+          </div>
+        `).join("");
+      }
+
+      function removeSimilarPerson(i) { similarPeople.splice(i,1); renderSimilarPeople(); }
+
+      /* ── 상황별 반응 폼 ── */
+      function renderSituationForms(situations) {
+        const saved = situations || {};
+        document.getElementById("situation-forms").innerHTML = SITUATIONS.map(s => {
+          const sv = saved[s.category] || {};
+          return `
+            <div style="margin-bottom:18px">
+              <div style="font-weight:800;margin-bottom:8px">
+                <span class="badge" style="margin-right:8px">${s.category}</span>${s.name}
+                <span style="font-size:12px;color:var(--muted);margin-left:6px">${s.desc}</span>
+              </div>
+              <label>이 패턴이 한 선택 (choice_text)
+                <input id="sit-${s.category}-choice" value="${sv.choiceText||''}"
+                  placeholder="예: 세일즈 사이클 지연 원인을 분석하고 병목을 해소한다." />
+              </label>
+              <label class="stacked">이 선택의 의미 (meaning)
+                <textarea id="sit-${s.category}-meaning" rows="2"
+                  placeholder="이 패턴이 이 상황에서 드러나는 특성 설명">${sv.meaning||''}</textarea>
+              </label>
+            </div>
+          `;
+        }).join("<hr class='section-divider' />");
+      }
+
+      /* ── 목록 ── */
+      function renderList() {
+        const jf = document.getElementById("filter-jf").value;
+        const types = getPTypes().filter(t => !jf || t.jobFamilyId === jf);
+        document.getElementById("list-badge").textContent = types.length;
+        const body = document.getElementById("type-list-body");
+        if (!types.length) {
+          body.innerHTML = '<div class="empty-state" style="padding:24px">등록된 패턴 유형이 없습니다.</div>';
+          return;
+        }
+        body.innerHTML = types.map(t => `
+          <div class="split-list-item ${editingId===t.id?'active':''}" onclick="openForm('${t.id}')">
+            <div>
+              <div>${t.typeName}${t.subTypeName ? ' · '+t.subTypeName : ''}</div>
+              <div class="item-meta">${t.jobFamilyId}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      /* ── 폼 열기 ── */
+      function openForm(id) {
+        editingId = id;
+        document.getElementById("type-form-wrap").style.display = "";
+        const delBtn = document.getElementById("f-delete-btn");
+        similarPeople = [];
+
+        if (!id) {
+          document.getElementById("form-title").textContent = "새 패턴 유형 등록";
+          ["f-typename","f-subtype","f-actiondesc","f-keywords","f-compositiondesc","f-discovery"].forEach(i =>
+            document.getElementById(i).value = "");
+          delBtn.style.display = "none";
+          renderSituationForms({});
+        } else {
+          const t = getPTypes().find(x => x.id === id);
+          if (!t) return;
+          document.getElementById("form-title").textContent = "패턴 유형 수정 — " + t.typeName;
+          document.getElementById("f-jf").value = t.jobFamilyId || "";
+          document.getElementById("f-typename").value = t.typeName || "";
+          document.getElementById("f-subtype").value = t.subTypeName || "";
+          document.getElementById("f-actiondesc").value = t.actionDesc || "";
+          document.getElementById("f-keywords").value = (t.keywords||[]).join(", ");
+          document.getElementById("f-compositiondesc").value = t.compositionDescTemplate || "";
+          document.getElementById("f-discovery").value = t.discoveryText || "";
+          similarPeople = JSON.parse(JSON.stringify(t.similarPeople||[]));
+          renderSituationForms(t.situations||{});
+          delBtn.style.display = "";
+        }
+
+        renderSimilarPeople();
+        switchPTab("basic", document.querySelector("#p-type-tabs .tab"));
+        renderList();
+      }
+
+      function closeForm() {
+        editingId = null;
+        document.getElementById("type-form-wrap").style.display = "none";
+        renderList();
+      }
+
+      function saveType() {
+        const typeName = document.getElementById("f-typename").value.trim();
+        if (!typeName) { alert("메인 유형명을 입력해주세요."); return; }
+
+        const situations = {};
+        SITUATIONS.forEach(s => {
+          situations[s.category] = {
+            category: s.category,
+            name: s.name,
+            choiceText: document.getElementById(`sit-${s.category}-choice`).value.trim(),
+            meaning: document.getElementById(`sit-${s.category}-meaning`).value.trim()
+          };
+        });
+
+        const data = {
+          id: editingId || genId(),
+          jobFamilyId: document.getElementById("f-jf").value,
+          typeName,
+          subTypeName: document.getElementById("f-subtype").value.trim(),
+          actionDesc: document.getElementById("f-actiondesc").value.trim(),
+          keywords: document.getElementById("f-keywords").value.split(",").map(s=>s.trim()).filter(Boolean),
+          compositionDescTemplate: document.getElementById("f-compositiondesc").value.trim(),
+          discoveryText: document.getElementById("f-discovery").value.trim(),
+          similarPeople: similarPeople.map(p => ({...p})),
+          situations
+        };
+
+        const types = getPTypes();
+        const idx = types.findIndex(t => t.id === data.id);
+        if (idx >= 0) types[idx] = data; else { types.push(data); editingId = data.id; }
+        savePTypes(types);
+        renderList();
+        alert("저장되었습니다.");
+      }
+
+      function deleteType() {
+        if (!confirm("이 패턴 유형을 삭제하시겠습니까?")) return;
+        savePTypes(getPTypes().filter(t => t.id !== editingId));
+        closeForm();
+      }
+
+      function populateJfSelects() {
+        const jfs = getCodeOptions().jobFamilies || [];
+        ["filter-jf","f-jf"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const extra = id === "filter-jf" ? '<option value="">전체</option>' : '';
+          el.innerHTML = extra + jfs.map(j =>
+            `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+          ).join("");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelects();
+        renderList();
+      });
+    </script>
+  </body>
+</html>

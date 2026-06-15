@@ -1,0 +1,197 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A영역 · 유형 매핑 설정 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+    <style>
+      .matrix-table th { white-space: nowrap; font-size: 12px; }
+      .matrix-table td { padding: 8px 10px; }
+      .matrix-table td:first-child { font-weight: 800; color: var(--muted); white-space: nowrap; }
+      .matrix-table input[type="number"] { width: 56px; min-height: 34px; padding: 4px 6px; text-align: center; font-weight: 800; }
+      .opt-preview { font-size: 12px; color: var(--text); max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a class="active" href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <h1 class="page-title">A영역 · 유형 매핑 설정</h1>
+        <p class="page-subtitle">문항별 선지가 각 적성 유형 점수에 얼마나 기여하는지 가중치를 설정합니다. 점수 합계가 가장 높은 유형이 결과로 도출됩니다.</p>
+
+        <div class="criteria-card">
+          <strong>💡 결과 도출 방식</strong>
+          <div>유저가 각 문항에서 선택한 선지의 점수를 유형별로 합산합니다. 가장 점수가 높은 유형이 메인 적성 유형으로 표시됩니다. 점수 범위는 0~5 사이를 권장합니다 (0 = 무관련, 5 = 강한 연관).</div>
+        </div>
+
+        <!-- 필터 -->
+        <section class="card" style="padding:14px 20px">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="min-width:200px">직무군
+              <select id="filter-jf" onchange="onFilterChange()">
+                <option value="">-- 직무군을 선택하세요 --</option>
+              </select>
+            </label>
+            <label>라운드
+              <select id="filter-round" onchange="onFilterChange()">
+                <option value="">전체</option>
+                <option value="1">1라운드</option>
+                <option value="2">2라운드</option>
+              </select>
+            </label>
+            <button class="button" onclick="saveAllMappings()" id="save-btn" disabled>전체 저장</button>
+          </div>
+        </section>
+
+        <div id="matrix-area" style="margin-top:20px">
+          <div class="card empty-state" style="padding:40px">
+            직무군을 선택하면 문항-유형 매핑 매트릭스가 표시됩니다.
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const AQ_KEY   = "kapp_a_questions_v1";
+      const AT_KEY   = "kapp_a_types_v1";
+      const MAP_KEY  = "kapp_a_mappings_v1";
+
+      function getAQs()   { try { return JSON.parse(localStorage.getItem(AQ_KEY)||"[]");  } catch { return []; } }
+      function getATypes(){ try { return JSON.parse(localStorage.getItem(AT_KEY)||"[]");  } catch { return []; } }
+      function getMappings(){ try { return JSON.parse(localStorage.getItem(MAP_KEY)||"{}"); } catch { return {}; } }
+      function saveMappings(d){ localStorage.setItem(MAP_KEY, JSON.stringify(d)); }
+
+      /* mapping key: `${questionId}_${optionIndex}` → { [typeName]: score } */
+
+      function onFilterChange() {
+        const jf    = document.getElementById("filter-jf").value;
+        const round = document.getElementById("filter-round").value;
+        if (!jf) {
+          document.getElementById("matrix-area").innerHTML =
+            '<div class="card empty-state" style="padding:40px">직무군을 선택하면 매핑 매트릭스가 표시됩니다.</div>';
+          document.getElementById("save-btn").disabled = true;
+          return;
+        }
+        renderMatrix(jf, round);
+        document.getElementById("save-btn").disabled = false;
+      }
+
+      function renderMatrix(jf, round) {
+        const questions = getAQs()
+          .filter(q => q.jobFamilyId === jf && (!round || String(q.round) === round))
+          .sort((a,b) => a.round - b.round || a.no - b.no);
+
+        const types = getATypes().filter(t => t.jobFamilyId === jf);
+        const mappings = getMappings();
+
+        if (!questions.length) {
+          document.getElementById("matrix-area").innerHTML =
+            '<div class="card empty-state" style="padding:40px">이 직무군의 A영역 문항이 없습니다. <a href="./a-question-manage.html">문항 관리</a>에서 먼저 등록하세요.</div>';
+          return;
+        }
+
+        if (!types.length) {
+          document.getElementById("matrix-area").innerHTML =
+            '<div class="card empty-state" style="padding:40px">이 직무군의 적성 유형이 없습니다. <a href="./a-type-manage.html">유형 관리</a>에서 먼저 등록하세요.</div>';
+          return;
+        }
+
+        const typeNames = types.map(t => t.typeName);
+
+        const html = questions.map(q => `
+          <section class="card" style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px">
+              R${q.round} · #${q.no} · ${q.trigger || ''}
+            </div>
+            <div style="font-size:13px;margin-bottom:12px;color:var(--text)">${q.stem ? q.stem.slice(0,120)+'…' : ''}</div>
+            <div class="matrix-wrap">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th>선지</th>
+                    <th>내용</th>
+                    ${typeNames.map(t => `<th>${t}</th>`).join("")}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(q.options||[]).map((opt, oi) => {
+                    const key = `${q.id}_${oi}`;
+                    const scores = mappings[key] || {};
+                    return `
+                      <tr>
+                        <td>${opt.label||'①②③④'[oi]}</td>
+                        <td class="opt-preview">${opt.text||''}</td>
+                        ${typeNames.map(tn => `
+                          <td>
+                            <input type="number" min="0" max="5" step="1"
+                              value="${scores[tn]||0}"
+                              data-key="${key}"
+                              data-type="${tn}"
+                              oninput="updateMapping(this)"
+                              style="width:56px" />
+                          </td>
+                        `).join("")}
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `).join("");
+
+        document.getElementById("matrix-area").innerHTML = html;
+      }
+
+      function updateMapping(input) {
+        const key  = input.dataset.key;
+        const type = input.dataset.type;
+        const val  = parseInt(input.value) || 0;
+        const maps = getMappings();
+        if (!maps[key]) maps[key] = {};
+        maps[key][type] = val;
+        saveMappings(maps);
+      }
+
+      function saveAllMappings() {
+        // all changes are saved on input — this is a confirmation flush
+        alert("매핑이 저장되었습니다. (입력 즉시 자동 저장됨)");
+      }
+
+      function populateJfSelect() {
+        const jfs = getCodeOptions().jobFamilies || [];
+        const sel = document.getElementById("filter-jf");
+        sel.innerHTML = '<option value="">-- 직무군을 선택하세요 --</option>' +
+          jfs.map(j => `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`).join("");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelect();
+      });
+    </script>
+  </body>
+</html>

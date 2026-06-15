@@ -1,0 +1,351 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A영역 · 문항 관리 | KAPP Admin</title>
+    <link rel="stylesheet" href="./assets/admin.css?v=20260605" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">KAPP Admin</div>
+        <div class="account">admin 계정</div>
+        <nav class="nav">
+          <div class="nav-group-label">K 영역</div>
+          <a href="./k-set-manage.html">세트 · 토픽 관리</a>
+          <a href="./k-question-manage.html">문항 관리</a>
+          <div class="nav-group-label">A 영역</div>
+          <a class="active" href="./a-question-manage.html">문항 관리</a>
+          <a href="./a-type-manage.html">적성 유형 관리</a>
+          <a href="./a-mapping-manage.html">유형 매핑 설정</a>
+          <div class="nav-group-label">P 영역</div>
+          <a href="./p-set-manage.html">문항 세트 관리</a>
+          <a href="./p-type-manage.html">패턴 유형 관리</a>
+          <div class="nav-group-label">종합 리포트</div>
+          <a href="./summary-manage.html">KAP 조합 관리</a>
+          <div class="nav-group-label">운영</div>
+          <a href="./member.html">회원 관리</a>
+          <a href="./analytics.html">행동 퍼널</a>
+          <a href="./code-management.html">코드 관리</a>
+          <a href="./orders.html">주문 관리</a>
+        </nav>
+      </aside>
+      <main class="main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">A영역 · 문항 관리</h1>
+            <p class="page-subtitle">적성 문항을 라운드별로 등록합니다. 1라운드 4문항, 2라운드 4문항 (선택). 정답 없음 — 응답 패턴으로 유형 도출.</p>
+          </div>
+          <button class="button" onclick="openForm(null)">+ 새 문항 등록</button>
+        </div>
+
+        <!-- 필터 -->
+        <section class="card" style="padding:14px 20px">
+          <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+            <label style="min-width:180px">직무군
+              <select id="filter-jf" onchange="renderList()">
+                <option value="">전체</option>
+              </select>
+            </label>
+            <label>라운드
+              <select id="filter-round" onchange="renderList()">
+                <option value="">전체</option>
+                <option value="1">1라운드</option>
+                <option value="2">2라운드</option>
+              </select>
+            </label>
+            <label>직급
+              <select id="filter-grade" onchange="renderList()">
+                <option value="">전체</option>
+                <option>주임</option><option>대리</option>
+                <option>과장</option><option>차장</option><option>부장</option>
+              </select>
+            </label>
+            <label style="min-width:180px">검색
+              <input id="filter-q" placeholder="트리거 또는 본문 검색" oninput="renderList()" />
+            </label>
+          </div>
+        </section>
+
+        <div class="split-layout" style="margin-top:18px">
+          <!-- 목록 -->
+          <div>
+            <div class="split-list">
+              <div class="split-list-header">
+                <span>문항 목록</span>
+                <span class="badge" id="list-badge">0</span>
+              </div>
+              <div id="q-list-body"></div>
+            </div>
+          </div>
+
+          <!-- 폼 -->
+          <div id="q-form-wrap" style="display:none">
+            <section class="card">
+              <h2 id="form-title">새 문항 등록</h2>
+
+              <!-- 기본 메타 -->
+              <div class="grid">
+                <label>직무군 *
+                  <select id="f-jf"></select>
+                </label>
+                <label>라운드 *
+                  <select id="f-round">
+                    <option value="1">1라운드</option>
+                    <option value="2">2라운드</option>
+                  </select>
+                </label>
+                <label>문항 번호 *
+                  <input id="f-no" type="number" min="1" placeholder="1" />
+                </label>
+                <label>직급
+                  <select id="f-grade">
+                    <option>주임</option><option>대리</option>
+                    <option>과장</option><option>차장</option><option>부장</option>
+                  </select>
+                </label>
+                <label>업종 클러스터
+                  <input id="f-cluster" placeholder="예: IT·서비스" />
+                </label>
+                <label>기업 규모
+                  <select id="f-company-size">
+                    <option>스타트업</option><option>중소</option>
+                    <option>중견</option><option>대기업</option>
+                  </select>
+                </label>
+              </div>
+              <label class="stacked">트리거 유형
+                <input id="f-trigger" placeholder="예: ⑫ 디지털 채널 발견형" />
+              </label>
+
+              <hr class="section-divider" />
+
+              <label class="stacked" style="margin-top:0">문항 본문 (시나리오) *
+                <textarea id="f-stem" rows="6" placeholder="시나리오를 입력하세요"></textarea>
+              </label>
+
+              <!-- 선지 -->
+              <div style="margin-top:16px">
+                <div style="font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px">선지 4개 (정답 없음 — 응답 패턴 측정)</div>
+                <div id="options-wrap">
+                  <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+                    <span style="font-weight:800;min-width:20px;color:var(--muted)">①</span>
+                    <input id="f-opt1" placeholder="선지 1" style="flex:1" />
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+                    <span style="font-weight:800;min-width:20px;color:var(--muted)">②</span>
+                    <input id="f-opt2" placeholder="선지 2" style="flex:1" />
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+                    <span style="font-weight:800;min-width:20px;color:var(--muted)">③</span>
+                    <input id="f-opt3" placeholder="선지 3" style="flex:1" />
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+                    <span style="font-weight:800;min-width:20px;color:var(--muted)">④</span>
+                    <input id="f-opt4" placeholder="선지 4" style="flex:1" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 해설 아코디언 -->
+              <div class="expl-accordion">
+                <details>
+                  <summary>① 상황 분석 (situationAnalysis)</summary>
+                  <div><textarea id="f-e1" rows="4" placeholder="각 선지가 어떤 상황 판단을 반영하는지"></textarea></div>
+                </details>
+                <details>
+                  <summary>② 상황 조건 (contextConditions)</summary>
+                  <div><textarea id="f-e2" rows="4" placeholder="각 선지가 빛나는 상황 vs 취약한 상황"></textarea></div>
+                </details>
+                <details>
+                  <summary>③ 상황 변수 (situationVariables)</summary>
+                  <div><textarea id="f-e3" rows="4" placeholder="직급·연차에 따라 달라지는 해석"></textarea></div>
+                </details>
+                <details>
+                  <summary>④ 직무 지식 (jobKnowledge)</summary>
+                  <div><textarea id="f-e4" rows="4" placeholder="측정하는 핵심 역량"></textarea></div>
+                </details>
+                <details>
+                  <summary>⑤ 직무 지식 요약 (jobKnowledgeSummary)</summary>
+                  <div><textarea id="f-e5" rows="3"></textarea></div>
+                </details>
+                <details>
+                  <summary>⑥ 성찰 질문 (reflectionQuestion)</summary>
+                  <div><textarea id="f-e6" rows="3" placeholder="자기 성찰 유도 질문"></textarea></div>
+                </details>
+                <details>
+                  <summary>⑦ 성찰 요약 (reflectionSummary)</summary>
+                  <div><textarea id="f-e7" rows="3"></textarea></div>
+                </details>
+                <details>
+                  <summary>⑧ 현장 패턴 사례 (fieldPatternCase)</summary>
+                  <div><textarea id="f-e8" rows="4" placeholder="실제 고성과자 패턴 사례"></textarea></div>
+                </details>
+                <details>
+                  <summary>⑨ 현장 패턴 요약 (fieldPatternSummary)</summary>
+                  <div><textarea id="f-e9" rows="3"></textarea></div>
+                </details>
+              </div>
+
+              <div class="actions">
+                <button class="button secondary" onclick="closeForm()">취소</button>
+                <button class="button danger" id="f-delete-btn" style="display:none" onclick="deleteQuestion()">삭제</button>
+                <button class="button" onclick="saveQuestion()">저장</button>
+              </div>
+            </section>
+
+            <div class="criteria-card" style="margin-top:0">
+              <strong>💡</strong>
+              <div>유형 매핑(선지→적성 점수)은 <a href="./a-mapping-manage.html" style="color:var(--primary)">A영역 유형 매핑 설정</a> 페이지에서 따로 설정합니다.</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./assets/admin.js?v=20260605"></script>
+    <script>
+      const AQ_KEY = "kapp_a_questions_v1";
+      function getAQs() { try { return JSON.parse(localStorage.getItem(AQ_KEY)||"[]"); } catch { return []; } }
+      function saveAQs(d) { localStorage.setItem(AQ_KEY, JSON.stringify(d)); }
+
+      let editingId = null;
+      function genId() { return "aq_" + Date.now() + "_" + Math.random().toString(36).slice(2,7); }
+
+      const EXPL_FIELDS = ["e1","e2","e3","e4","e5","e6","e7","e8","e9"];
+
+      function renderList() {
+        const qs = getAQs();
+        const jf = document.getElementById("filter-jf").value;
+        const round = document.getElementById("filter-round").value;
+        const grade = document.getElementById("filter-grade").value;
+        const q = document.getElementById("filter-q").value.toLowerCase();
+
+        const filtered = qs.filter(item =>
+          (!jf || item.jobFamilyId === jf) &&
+          (!round || String(item.round) === round) &&
+          (!grade || item.grade === grade) &&
+          (!q || item.stem.toLowerCase().includes(q) || (item.trigger||"").toLowerCase().includes(q))
+        ).sort((a,b) => a.round - b.round || a.no - b.no);
+
+        document.getElementById("list-badge").textContent = filtered.length;
+        const body = document.getElementById("q-list-body");
+
+        if (!filtered.length) {
+          body.innerHTML = '<div class="empty-state" style="padding:24px">등록된 문항이 없습니다.</div>';
+          return;
+        }
+
+        body.innerHTML = filtered.map(item => `
+          <div class="split-list-item ${editingId===item.id?'active':''}" onclick="openForm('${item.id}')">
+            <div style="min-width:0">
+              <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${item.trigger || item.stem.slice(0,30)}</div>
+              <div class="item-meta">R${item.round} · #${item.no} · ${item.grade} · ${item.cluster||''}</div>
+            </div>
+            <span class="badge">R${item.round}</span>
+          </div>
+        `).join("");
+      }
+
+      function openForm(id) {
+        editingId = id;
+        document.getElementById("q-form-wrap").style.display = "";
+        const delBtn = document.getElementById("f-delete-btn");
+
+        if (!id) {
+          document.getElementById("form-title").textContent = "새 문항 등록";
+          ["f-no","f-stem","f-opt1","f-opt2","f-opt3","f-opt4","f-trigger","f-cluster"].forEach(i =>
+            document.getElementById(i).value = "");
+          EXPL_FIELDS.forEach(k => document.getElementById("f-"+k).value = "");
+          delBtn.style.display = "none";
+        } else {
+          const item = getAQs().find(q => q.id === id);
+          if (!item) return;
+          document.getElementById("form-title").textContent = "문항 수정";
+          document.getElementById("f-jf").value = item.jobFamilyId || "";
+          document.getElementById("f-round").value = item.round;
+          document.getElementById("f-no").value = item.no;
+          document.getElementById("f-grade").value = item.grade;
+          document.getElementById("f-cluster").value = item.cluster || "";
+          document.getElementById("f-company-size").value = item.companySize || "중견";
+          document.getElementById("f-trigger").value = item.trigger || "";
+          document.getElementById("f-stem").value = item.stem;
+          [1,2,3,4].forEach(i => document.getElementById(`f-opt${i}`).value = item.options?.[i-1]?.text || "");
+          EXPL_FIELDS.forEach((k,idx) => {
+            const keys = ["situationAnalysis","contextConditions","situationVariables",
+              "jobKnowledge","jobKnowledgeSummary","reflectionQuestion",
+              "reflectionSummary","fieldPatternCase","fieldPatternSummary"];
+            document.getElementById("f-"+k).value = item.explanationBlocks?.[keys[idx]] || "";
+          });
+          delBtn.style.display = "";
+        }
+        renderList();
+      }
+
+      function closeForm() {
+        editingId = null;
+        document.getElementById("q-form-wrap").style.display = "none";
+        renderList();
+      }
+
+      function saveQuestion() {
+        const stem = document.getElementById("f-stem").value.trim();
+        if (!stem) { alert("문항 본문을 입력해주세요."); return; }
+        const options = [1,2,3,4].map(i => ({
+          label: "①②③④"[i-1],
+          text: document.getElementById(`f-opt${i}`).value.trim()
+        }));
+        if (options.some(o => !o.text)) { alert("선지 4개를 모두 입력해주세요."); return; }
+
+        const keys = ["situationAnalysis","contextConditions","situationVariables",
+          "jobKnowledge","jobKnowledgeSummary","reflectionQuestion",
+          "reflectionSummary","fieldPatternCase","fieldPatternSummary"];
+        const explanationBlocks = {};
+        EXPL_FIELDS.forEach((k,i) => { explanationBlocks[keys[i]] = document.getElementById("f-"+k).value.trim(); });
+
+        const data = {
+          id: editingId || genId(),
+          jobFamilyId: document.getElementById("f-jf").value,
+          round: parseInt(document.getElementById("f-round").value),
+          no: parseInt(document.getElementById("f-no").value) || 1,
+          grade: document.getElementById("f-grade").value,
+          cluster: document.getElementById("f-cluster").value.trim(),
+          companySize: document.getElementById("f-company-size").value,
+          trigger: document.getElementById("f-trigger").value.trim(),
+          stem, options, explanationBlocks
+        };
+
+        const qs = getAQs();
+        const idx = qs.findIndex(q => q.id === data.id);
+        if (idx >= 0) qs[idx] = data; else { qs.push(data); editingId = data.id; }
+        saveAQs(qs);
+        renderList();
+        alert("저장되었습니다.");
+      }
+
+      function deleteQuestion() {
+        if (!confirm("이 문항을 삭제하시겠습니까?")) return;
+        saveAQs(getAQs().filter(q => q.id !== editingId));
+        closeForm();
+      }
+
+      function populateJfSelects() {
+        const jfs = (getCodeOptions().jobFamilies || []);
+        ["filter-jf","f-jf"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const extra = id === "filter-jf" ? '<option value="">전체</option>' : '';
+          el.innerHTML = extra + jfs.map(j =>
+            `<option value="${j.jobFamilyId}">${j.jobFamilyId} – ${j.jobFamilyNameKo}</option>`
+          ).join("");
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        populateJfSelects();
+        renderList();
+      });
+    </script>
+  </body>
+</html>
