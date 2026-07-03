@@ -9,6 +9,58 @@ const el = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const initials = (n) => (n || '?').trim().slice(0, 2);
 
+/* 작대기(tally) 표기 — 5개 묶음(정자 대신 |||| + 사선). 손으로 그린 듯 살짝 기울임 */
+function tallyGroup(k) {
+  const xs = [3, 7.5, 12, 16.5], sl = [.6, -.5, .5, -.6];
+  let l = '';
+  for (let i = 0; i < Math.min(k, 4); i++) l += `<line x1="${xs[i]}" y1="2.5" x2="${xs[i] + sl[i]}" y2="16" />`;
+  if (k >= 5) l += `<line x1="1.5" y1="15" x2="20" y2="3.5" />`;
+  return `<svg width="22" height="18" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">${l}</svg>`;
+}
+function tallyMarks(n) {
+  n = Math.max(0, n | 0);
+  if (!n) return '';
+  const groups = [];
+  let left = Math.min(n, 60); // 표시 상한(숫자가 정본)
+  while (left > 0) { groups.push(Math.min(5, left)); left -= 5; }
+  return groups.map(tallyGroup).join('');
+}
+function paintCount(cell, v) {
+  cell.querySelector('[data-cnt]').textContent = v;
+  const t = cell.querySelector('[data-tally]'); if (t) t.innerHTML = tallyMarks(v);
+}
+
+const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/></svg>';
+
+/* 음성 기록: 지원 브라우저(Chrome 등)는 말한 내용을 메모에 실시간 추가.
+   미지원 시 안내. (다음 단계: 음성 원본 저장 → 전체 텍스트 + 요약 자동 생성) */
+let _recog = null, _recOn = false;
+function toggleVoice(btn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!_recOn) {
+    if (!SR) { toast('이 브라우저는 음성인식 미지원 — 직접 입력해 주세요'); return; }
+    _recog = new SR(); _recog.lang = 'ko-KR'; _recog.continuous = true; _recog.interimResults = false;
+    _recog.onresult = (e) => {
+      const ta = el('ev-memo'); if (!ta) return;
+      let t = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
+      t = t.trim(); if (t) ta.value = (ta.value ? ta.value + ' ' : '') + t;
+    };
+    _recog.onend = () => { _recOn = false; paintMic(); };
+    try { _recog.start(); _recOn = true; toast('● 녹음 중 — 말하면 메모에 적혀요'); } catch (_) {}
+  } else {
+    try { _recog && _recog.stop(); } catch (_) {}
+    _recOn = false; toast('녹음 종료');
+  }
+  paintMic();
+}
+function paintMic() {
+  const b = document.querySelector('[data-act="voice"]');
+  if (!b) return;
+  b.classList.toggle('rec', _recOn);
+  const l = b.querySelector('.mlab'); if (l) l.textContent = _recOn ? '녹음 중지' : '녹음하며 기록';
+}
+
 function toast(msg) {
   let t = el('toast');
   if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
@@ -47,7 +99,8 @@ function radarSVG(scores, order, labels) {
   const pt = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
   const toXY = (i, val) => pt(i, R * Math.max(0, Math.min(100, val)) / 100);
 
-  const C = { grid: '#eceae4', label: '#8b8e95', accent: '#8a7846', fill: 'rgba(182,162,121,.20)', stroke: '#b6a279' };
+  const C = { grid: 'rgba(38,52,76,.30)', label: '#6d6a5c', accent: '#33507c', fill: 'rgba(51,80,124,.13)', stroke: '#33507c' };
+  const rough = `<defs><filter id="rgh"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4"/></filter></defs>`;
   let grid = '';
   for (const ring of [0.25, 0.5, 0.75, 1]) {
     const p = order.map((_, i) => pt(i, R * ring).join(',')).join(' ');
@@ -66,8 +119,9 @@ function radarSVG(scores, order, labels) {
   const dots = order.map((k, i) => { const [x, y] = toXY(i, scores[k]); return `<circle cx="${x}" cy="${y}" r="3" fill="${C.stroke}"/>`; }).join('');
 
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" style="max-width:340px" role="img" aria-label="KPI 레이더">
-    ${grid}${spokes}
-    <polygon points="${poly}" fill="${C.fill}" stroke="${C.stroke}" stroke-width="2"/>
+    ${rough}
+    <g filter="url(#rgh)">${grid}${spokes}
+      <polygon points="${poly}" fill="${C.fill}" stroke="${C.stroke}" stroke-width="1.8" stroke-linejoin="round"/></g>
     ${dots}${axisLabels}</svg>`;
 }
 
@@ -153,7 +207,9 @@ function screenRecord(mid) {
   const groups = REC_GROUPS.map((g) => `<div class="rec-group"><h3>${g.title}</h3><div class="rec-grid">
     ${g.items.map(([key, lab, cls]) => `<div class="tap ${cls}" data-act="tap" data-stat="${key}">
         <button class="minus" data-act="untap" data-stat="${key}">−</button>
-        <div class="lab">${lab}</div><div class="cnt" data-cnt="${key}">${rec.stats[key] || 0}</div>
+        <div class="lab">${lab}</div>
+        <div class="num" data-cnt="${key}">${rec.stats[key] || 0}</div>
+        <div class="tally" data-tally="${key}">${tallyMarks(rec.stats[key] || 0)}</div>
       </div>`).join('')}</div></div>`).join('');
 
   const footer = m.status === 'live'
@@ -184,7 +240,13 @@ function screenEval(mid) {
     html: `<div class="screen">
       <div class="card row"><div class="avatar">${esc(initials(p.name))}</div><div class="grow"><div class="title">${esc(p.name)}</div><div class="sub">${esc(m.name || '')}</div></div></div>
       <div class="card">${rows}</div>
-      <label class="field"><span>추가 메모</span><textarea id="ev-memo" placeholder="경기 집중력, 판단, 패스 선택 등">${esc(ev.memo)}</textarea></label>
+      <label class="field"><span>추가 메모</span>
+        <div class="memo-head">
+          <button class="micbtn" data-act="voice">${MIC_SVG}<span class="mlab">녹음하며 기록</span></button>
+          <span class="micnote">음성 → 전체 텍스트 + 요약<br>자동 생성 (예정)</span>
+        </div>
+        <textarea id="ev-memo" placeholder="경기 집중력, 판단, 패스 선택 등 — 직접 쓰거나 🎙 눌러 말하세요">${esc(ev.memo)}</textarea>
+      </label>
       <button class="btn gold" data-act="saveEval" data-id="${mid}">평가 저장</button>
     </div>` };
 }
@@ -287,18 +349,21 @@ document.addEventListener('click', (e) => {
     recPid = act.dataset.id; render();
   } else if (a === 'tap') {
     const v = S.tally(recPid, view.params.id, act.dataset.stat, +1);
-    act.querySelector('[data-cnt]').textContent = v;
+    paintCount(act, v);
     if (navigator.vibrate) navigator.vibrate(8);
   } else if (a === 'untap') {
     e.stopPropagation();
     const v = S.tally(recPid, view.params.id, act.dataset.stat, -1);
-    const cell = act.closest('.tap'); cell.querySelector('[data-cnt]').textContent = v;
+    paintCount(act.closest('.tap'), v);
   } else if (a === 'finish') {
     if (confirm('경기를 종료하고 통계를 확정할까요?')) { S.finishMatch(act.dataset.id); toast('경기 종료 · 통계 확정'); go('report', { id: recPid }); }
   } else if (a === 'evalOpen') {
     go('eval', { id: act.dataset.id });
+  } else if (a === 'voice') {
+    toggleVoice(act.closest('[data-act="voice"]'));
   } else if (a === 'star') {
     const ev = S.evaluation(recPid, view.params.id);
+    const ta = el('ev-memo'); if (ta) ev.memo = ta.value; // 별점 눌러도 메모 유지
     ev.ratings[act.dataset.key] = +act.dataset.v; S._commit(); render();
   } else if (a === 'saveEval') {
     S.saveEvaluation(recPid, act.dataset.id, { memo: el('ev-memo').value });
